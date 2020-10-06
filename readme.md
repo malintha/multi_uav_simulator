@@ -1,6 +1,6 @@
 # Multi-UAV-Simulator
 
-An efficient and robust multi drone simulator based on ROS (Robot Operating System).
+An efficient and robust multi drone simulator based on ROS (Robot Operating System). The dynamics of the drones are modeled using a set of ODEs and solved via GSL. The trajectory tracking is performed using the geometric tracking controller proposed in [2], and a standalone implementation of the same can be found at https://github.com/malintha/geo_controller/.
 
 ![Cover Image](https://raw.githubusercontent.com/Malintha/multi_uav_simulator/master/cover.png)
 
@@ -19,3 +19,14 @@ Use catkin build to build the packages as below.
     
     cd catkin_ws/ && source devel/setup.bash
     catkin build cf_simulator
+
+Run the simulator
+
+    source devel/setup.bash
+    roslaunch multi_uav_simulator simu.launch
+
+Please consider cititing our work [1] if you use this code in your publications.
+
+[1] M. Fernando and L. Liu, "Formation Control and Navigation of a Quadrotor Swarm," 2019 International Conference on Unmanned Aircraft Systems (ICUAS), Atlanta, GA, USA, 2019, pp. 284-291, doi: 10.1109/ICUAS.2019.8798352.
+
+[2] T. Lee, M. Leok and N. H. McClamroch, "Geometric tracking control of a quadrotor UAV on SE(3)," 49th IEEE Conference on Decision and Control (CDC), Atlanta, GA, 2010, pp. 5420-5425, doi: 10.1109/CDC.2010.5717652.
