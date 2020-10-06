@@ -2,7 +2,7 @@
 
 An efficient and robust multi drone simulator based on ROS (Robot Operating System). The dynamics of the drones are modeled using a set of ODEs and solved via GSL. The trajectory tracking is performed using the geometric tracking controller proposed in [2], and a standalone implementation of the same can be found at https://github.com/malintha/geo_controller/.
 
-![Cover Image](https://raw.githubusercontent.com/Malintha/multi_uav_simulator/master/cover.png)
+![Cover Image](https://raw.githubusercontent.com/Malintha/multi_uav_simulator/master/cover.gif)
 
 **Install dependencies**
 Please install [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page), [Armadillo](https://www.uio.no/studier/emner/matnat/fys/FYS4411/v13/guides/installing-armadillo/) and [GNU Science Library (GSL)](https://www.gnu.org/software/gsl/) before you continue.
@@ -25,7 +25,7 @@ Run the simulator
     source devel/setup.bash
     roslaunch multi_uav_simulator simu.launch
 
-Please consider cititing our work [1] if you use this code in your publications.
+Please consider citiing our work [1] if you find this code helpful for your publications.
 
 [1] M. Fernando and L. Liu, "Formation Control and Navigation of a Quadrotor Swarm," 2019 International Conference on Unmanned Aircraft Systems (ICUAS), Atlanta, GA, USA, 2019, pp. 284-291, doi: 10.1109/ICUAS.2019.8798352.
 
