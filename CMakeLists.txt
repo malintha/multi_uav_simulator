@@ -37,12 +37,11 @@ include_directories(
 add_executable(multi_uav_simulator
         src/Simulator.cpp
         src/cfSimUtils.h
-        src/DesiredStateProvider.h
-        src/DesiredStateProvider.cpp
         src/DynamicsProvider.cpp
         src/DynamicsProvider.h
         src/cfSimUtils.cpp
-        src/Quadrotor.cpp src/Quadrotor.h)
+        src/Quadrotor.cpp 
+	src/Quadrotor.h)
 
 target_link_libraries(multi_uav_simulator
                     GSL::gsl
