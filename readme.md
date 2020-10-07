@@ -18,7 +18,7 @@ Clone the following packages to your ROS workspace. i.e: (~/catkin_ws/src/).
 Use catkin build to build the packages as below.
     
     cd catkin_ws/ && source devel/setup.bash
-    catkin build cf_simulator
+    catkin build multi_uav_simulator
 
 Run the simulator
 
