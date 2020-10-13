@@ -27,7 +27,7 @@ bool Quadrotor::initialize(double dt) {
     }
 
     stringstream ss;
-    ss << prefix << to_string(robot_id);
+    ss << localframe << to_string(robot_id);
     robot_link_name = ss.str();
 
     // set initial values
@@ -40,12 +40,15 @@ bool Quadrotor::initialize(double dt) {
     controller = new ControllerImpl(params, init_vals, gains, dt);
 
     this->setState(State::Autonomous);
-
     initPaths();
-    ROS_INFO_STREAM("Drone initialized " << robot_link_name);
 
+    desired_state_sub = nh.subscribe("desired_state",100, &Quadrotor::desired_state_cb, this);
+    state_pub = nh.advertise<simulator_utils::Waypoint>("current_state", 100);
+    ROS_DEBUG_STREAM("Drone initialized " << robot_id);
+    ROS_INFO_STREAM("Desired state subscriber topic: " << "robot_"<<robot_id<<"/desired_state");
+    ROS_INFO_STREAM("State publisher topic: " << "robot_"<<robot_id<<"/current_state");
     while (marker_pub.getNumSubscribers() < 1) {
-        ROS_INFO("Waiting for subscriber");
+        ROS_INFO_STREAM("Waiting for subscriber: "<<robot_id);
         ros::Duration(1).sleep();
     }
 
@@ -122,7 +125,7 @@ bool Quadrotor::load_params() {
     vector<double> J_;
     if (!nh.getParam("/uav/J", J_)) return false;
     Matrix3d J;
-    J << J_[0], 0, 0,
+    J <<    J_[0], 0, 0,
             0, J_[1], 0,
             0, 0, J_[2];
     params.J = J;
@@ -136,7 +139,7 @@ bool Quadrotor::load_params() {
     if (!nh.getParam("/controller/gains", gains_)) return false;
     this->gains = {gains_[0], gains_[1], gains_[2], gains_[3]};
 
-    ROS_DEBUG_STREAM("Loaded the drone parameters");
+    ROS_DEBUG_STREAM("Loaded control parameters");
     return true;
 }
 
@@ -150,43 +153,31 @@ bool Quadrotor::load_init_vals() {
     if (!nh.getParam(ros::names::append(robot_name, "rotation"), R)) return false;
     if (!nh.getParam(ros::names::append(robot_name, "omega"), omega)) return false;
     if (!nh.getParam("/frame/fixed", worldframe)) return false;
-    if (!nh.getParam("drone/frame/prefix", prefix)) return false;
+    if (!nh.getParam("drone/frame/prefix", localframe)) return false;
     init_vals.position = Vector3d(position.data());
     init_vals.velocity = Vector3d(vel.data());
     init_vals.R = Matrix3d(R.data());
     init_vals.omega = Vector3d(omega.data());
 
-    ROS_DEBUG_STREAM("Loaded the drone init values");
+    ROS_DEBUG_STREAM("Loaded the drone initialization values");
     return true;
 }
 
-state_space_t Quadrotor::get_state_space() {
-    return this->state_space;
-}
-
-void Quadrotor::set_desired_state(const desired_state_t &desired_ss_) {
-    desired_state.x = simulator_utils::ned_nwu_rotation(desired_ss_.x);
-    desired_state.b1 = desired_ss_.b1;
-
-}
-
-init_vals_t Quadrotor::get_init_vals() {
-    return init_vals;
-}
-
-DynamicsProvider *Quadrotor::get_dynamics() {
-    return this->dynamics;
+void Quadrotor::desired_state_cb(const simulator_utils::WaypointConstPtr &waypoint) {
+    Eigen::Vector3d x{waypoint->position.x,waypoint->position.y,waypoint->position.z};
+    Eigen::Vector3d b1d{1,0,0};
+    desired_state.x = simulator_utils::ned_nwu_rotation(init_vals.position);
+    desired_state.b1 = b1d;
 }
 
 void Quadrotor::iteration(const ros::TimerEvent &e) {
     Vector3d b1d(1, 0, 0);
-
     // get desired state from topic
     Vector3d xd = simulator_utils::ned_nwu_rotation(init_vals.position);
-    desired_state_t dss = {(xd), b1d};
-
+    desired_state_t dss = {xd, b1d};
     this->move(1 / frequency, dss);
     this->publish_path();
+    this->publish_state();
 }
 
 void Quadrotor::publish_path() {
@@ -198,7 +189,7 @@ void Quadrotor::publish_path() {
     p.z = x[2];
     m.points.push_back(p);
 
-    if (m.points.size() > 200)
+    if (m.points.size() > 100)
         m.points.pop_back();
 
     marker_pub.publish(m);
@@ -207,6 +198,21 @@ void Quadrotor::publish_path() {
 void Quadrotor::run() {
     ros::Timer timer = nh.createTimer(ros::Duration(1 / frequency), &Quadrotor::iteration, this);
     ros::spin();
+}
+
+void Quadrotor::publish_state() {
+    simulator_utils::Waypoint wp;
+    geometry_msgs::Point p,v;
+    p.x = state_space.position[0];
+    p.y = state_space.position[1];
+    p.z = state_space.position[2];
+    v.x = state_space.velocity[0];
+    v.y = state_space.velocity[1];
+    v.z = state_space.velocity[2];
+    wp.position = p;
+    wp.velocity = v;
+    wp.acceleration.x = wp.acceleration.y = wp.acceleration.z = 0;
+    this->state_pub.publish(wp);
 }
 
 int main(int argc, char **argv) {

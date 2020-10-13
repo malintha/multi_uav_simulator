@@ -9,6 +9,7 @@
 #include "tf/tf.h"
 #include <eigen3/Eigen/Dense>
 #include "ros/ros.h"
+#include "simulator_utils/Waypoint.h"
 
 #ifndef state
 #define state
@@ -34,15 +35,9 @@ public:
 
     State getState();
 
-    state_space_t get_state_space();
-
     bool initialize(double dt);
 
-    void set_desired_state(const desired_state_t &desired_ss_);
-
-    init_vals_t get_init_vals();
-
-    DynamicsProvider *get_dynamics();
+    void desired_state_cb(const simulator_utils::WaypointConstPtr &waypoint);
 
     void iteration(const ros::TimerEvent &e);
 
@@ -54,7 +49,7 @@ private:
     double sim_time;
     int robot_id;
     std::string worldframe;
-    string prefix;
+    string localframe;
     gains_t gains;
     double frequency;
 
@@ -69,18 +64,17 @@ private:
 
     ros::Publisher marker_pub;
     visualization_msgs::Marker m;
+    ros::Subscriber desired_state_sub;
+    ros::Publisher state_pub;
 
     void initPaths();
-
     void set_state_space();
-
     bool load_params();
-
     bool load_init_vals();
-
     void send_transform();
-
     void publish_path();
+    void publish_state();
+
 };
 
 #endif

@@ -32,6 +32,7 @@ catkin_package(
 include_directories(
         ${catkin_INCLUDE_DIRS}
         ${geo_controller_INCLUDE_DIRS}
+        ${simulator_utils_INCLUDE_DIRS}
 )
 
 add_executable(multi_uav_simulator
