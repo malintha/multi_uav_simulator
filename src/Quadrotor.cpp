@@ -2,7 +2,6 @@
 // Created by malintha on 8/22/18.
 //
 #include "Quadrotor.h"
-#include "cfSimUtils.h"
 #include <tf/tf.h>
 #include <tf/transform_broadcaster.h>
 #include <ros/console.h>
@@ -11,7 +10,7 @@
 Quadrotor::Quadrotor(int robot_id, double frequency, ros::NodeHandle &n)
         : robot_id(robot_id), frequency(frequency), nh(n) {
     sim_time = 0;
-    this->initialize(1/frequency);
+    this->initialize(1 / frequency);
 }
 
 bool Quadrotor::initialize(double dt) {
@@ -76,7 +75,7 @@ void Quadrotor::setState(State m_state_) {
     this->m_state = m_state_;
 }
 
-void Quadrotor::move(double dt, const desired_state_t& d_state) {
+void Quadrotor::move(double dt, const desired_state_t &d_state) {
     control_out_t control = controller->get_control(dynamics->get_state(), d_state);
     dynamics->update(control, sim_time);
 
@@ -100,7 +99,6 @@ void Quadrotor::set_state_space() {
 }
 
 void Quadrotor::send_transform() {
-//    state_space_t ss = dynamics->get_state();
     static tf::TransformBroadcaster br;
     tf::Transform transform;
     Vector3d position = state_space.position;
@@ -166,7 +164,7 @@ state_space_t Quadrotor::get_state_space() {
     return this->state_space;
 }
 
-void Quadrotor::set_desired_state(const desired_state_t& desired_ss_) {
+void Quadrotor::set_desired_state(const desired_state_t &desired_ss_) {
     desired_state.x = simulator_utils::ned_nwu_rotation(desired_ss_.x);
     desired_state.b1 = desired_ss_.b1;
 
@@ -187,8 +185,7 @@ void Quadrotor::iteration(const ros::TimerEvent &e) {
     Vector3d xd = simulator_utils::ned_nwu_rotation(init_vals.position);
     desired_state_t dss = {(xd), b1d};
 
-    this->move(1/frequency,dss);
-//    if(std::remainder(sim_time, 0.05) < 0.001)
+    this->move(1 / frequency, dss);
     this->publish_path();
 }
 
@@ -201,7 +198,7 @@ void Quadrotor::publish_path() {
     p.z = x[2];
     m.points.push_back(p);
 
-    if(m.points.size()>200)
+    if (m.points.size() > 200)
         m.points.pop_back();
 
     marker_pub.publish(m);
@@ -216,9 +213,9 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "~");
     ros::NodeHandle n;
     int robot_id;
-    n.getParam("drone/robot_id",robot_id);
+    n.getParam("drone/robot_id", robot_id);
 
-    std::cout<<"initializing : "<<robot_id<<endl;
+    ROS_DEBUG_STREAM("initializing : " << robot_id << endl);
     stringstream ss;
     double frequency = 100;
 

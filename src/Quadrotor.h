@@ -5,8 +5,6 @@
 #include <tf/transform_listener.h>
 #include <string>
 #include <visualization_msgs/Marker.h>
-
-// #include "DesiredStateProvider.h"
 #include "DynamicsProvider.h"
 #include "tf/tf.h"
 #include <eigen3/Eigen/Dense>
@@ -30,7 +28,7 @@ class Quadrotor {
 public:
     Quadrotor(int robot_id, double frequency, ros::NodeHandle &n);
 
-    void move(double dt, const desired_state_t& d_state);
+    void move(double dt, const desired_state_t &d_state);
 
     void setState(State m_state);
 

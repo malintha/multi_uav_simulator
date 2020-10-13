@@ -3,7 +3,6 @@
 <!--  <param name="count" value="1"/>-->
   <param name="cf1" command="$(find xacro)/xacro.py $(find multi_uav_simulator)/cf_description/urdf/cf1.urdf.xacro" />
   <param name="cf2" command="$(find xacro)/xacro.py $(find multi_uav_simulator)/cf_description/urdf/cf2.urdf.xacro" />
-
   <param name="cf3" command="$(find xacro)/xacro.py $(find multi_uav_simulator)/cf_description/urdf/cf3.urdf.xacro" />
   <param name="cf4" command="$(find xacro)/xacro.py $(find multi_uav_simulator)/cf_description/urdf/cf4.urdf.xacro" />
 
