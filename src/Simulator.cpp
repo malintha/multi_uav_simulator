@@ -51,8 +51,13 @@ public:
         for (int i = 0; i < n_drones; i++) {
             Quadrotor *quad = quadList[i];
             init_vals_t init_vals = quad->get_init_vals();
-            Vector3d xd = simulator_utils::ned_nwu_rotation(init_vals.position);
             Vector3d b1d(1, 0, 0);
+
+            //get xd from MRF optimization
+
+
+
+            Vector3d xd = simulator_utils::ned_nwu_rotation(init_vals.position);
             desired_state_t dss = {(xd), b1d};
             quad->move(dt, dss);
 

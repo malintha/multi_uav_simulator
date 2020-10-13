@@ -4,6 +4,8 @@
 #include <geo_controller/controllerImpl.h>
 #include <tf/transform_listener.h>
 #include <string>
+#include <visualization_msgs/Marker.h>
+
 // #include "DesiredStateProvider.h"
 #include "DynamicsProvider.h"
 #include "tf/tf.h"
@@ -26,9 +28,9 @@ using namespace std;
 
 class Quadrotor {
 public:
-    Quadrotor(int robot_id, std::string worldframe, string prefix);
+    Quadrotor(int robot_id, double frequency, ros::NodeHandle &n);
 
-    void move(double dt, desired_state_t d_state);
+    void move(double dt, const desired_state_t& d_state);
 
     void setState(State m_state);
 
@@ -36,13 +38,17 @@ public:
 
     state_space_t get_state_space();
 
-    bool initialize(double dt, gains_t gains);
+    bool initialize(double dt);
 
     void set_desired_state(const desired_state_t &desired_ss_);
 
     init_vals_t get_init_vals();
 
     DynamicsProvider *get_dynamics();
+
+    void iteration(const ros::TimerEvent &e);
+
+    void run();
 
 private:
 
@@ -51,6 +57,9 @@ private:
     int robot_id;
     std::string worldframe;
     string prefix;
+    gains_t gains;
+    double frequency;
+
     ControllerImpl *controller;
     state_space_t state_space;
     desired_state_t desired_state;
@@ -60,14 +69,20 @@ private:
     params_t params;
     init_vals_t init_vals;
 
+    ros::Publisher marker_pub;
+    visualization_msgs::Marker m;
+
+    void initPaths();
+
     void set_state_space();
 
-    bool load_params(ros::NodeHandle &nh);
+    bool load_params();
 
-    bool load_init_vals(ros::NodeHandle &nh);
+    bool load_init_vals();
 
     void send_transform();
 
+    void publish_path();
 };
 
 #endif

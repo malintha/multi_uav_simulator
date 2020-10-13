@@ -10,6 +10,10 @@ Panels:
         - /RobotModel2
         - /RobotModel3
         - /RobotModel4
+        - /Marker1
+        - /Marker2
+        - /Marker3
+        - /Marker4
       Splitter Ratio: 0.4576271176338196
     Tree Height: 560
   - Class: rviz/Selection
@@ -149,7 +153,31 @@ Visualization Manager:
       Visual Enabled: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /visualization_marker
+      Marker Topic: /base_link2/path
+      Name: Marker
+      Namespaces:
+        "": true
+      Queue Size: 100
+      Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /base_link4/path
+      Name: Marker
+      Namespaces:
+        "": true
+      Queue Size: 100
+      Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /base_link3/path
+      Name: Marker
+      Namespaces:
+        "": true
+      Queue Size: 100
+      Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /base_link1/path
       Name: Marker
       Namespaces:
         "": true
@@ -183,7 +211,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 10.288017272949219
+      Distance: 8.543131828308105
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -198,10 +226,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6597968339920044
+      Pitch: 0.4197971224784851
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.3735737800598145
+      Yaw: 5.963571071624756
     Saved: ~
 Window Geometry:
   Displays:
@@ -219,5 +247,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1252
-  X: 2355
-  Y: 0
+  X: 626
+  Y: 137
