@@ -56,6 +56,7 @@ private:
 
     Vector3d u;
     double tau;
+    state_space_t x0;
 
     ControllerImpl *controller;
     state_space_t state_space;

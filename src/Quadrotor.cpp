@@ -161,11 +161,17 @@ bool Quadrotor::load_init_vals() {
     init_vals.R = Matrix3d(R.data());
     init_vals.omega = Vector3d(omega.data());
 
+    this->x0.position = simulator_utils::ned_nwu_rotation(init_vals.position);
+
     ROS_DEBUG_STREAM("Loaded the drone initialization values");
     return true;
 }
 
 void Quadrotor::desired_state_cb(const geometry_msgs::PointConstPtr &pt) {
+//    this->init_vals.position = this->dynamics->get_state().position;
+//    this->init_vals.velocity = this->dynamics->get_state().velocity;
+    this->x0.position = this->dynamics->get_state().position;
+    this->x0.velocity = this->dynamics->get_state().velocity;
     this->u << pt->x, pt->y, pt->z;
     this->tau = 0;
 }
@@ -173,12 +179,13 @@ void Quadrotor::desired_state_cb(const geometry_msgs::PointConstPtr &pt) {
 void Quadrotor::iteration(const ros::TimerEvent &e) {
     // compute the next desired state using incoming control signal and current state
     Vector3d b1d(1, 0, 0);
-    Vector3d p = this->dynamics->get_state().position;
-    Vector3d v = this->dynamics->get_state().velocity;
-    Vector3d xd = 0.5 * u * pow(tau, 2) + v * tau + p;
-    ROS_DEBUG_STREAM("Robot: "<<robot_id<<" xd: "<<xd[0]<<" "<<xd[1]<<" "<<xd[2]);
     tau = tau + dt;
     // get desired state from topic
+    Vector3d xd = 0.5 * u * pow(tau, 2);
+//    Vector3d p = simulator_utils::ned_nwu_rotation(init_vals.position);
+//    Vector3d v = simulator_utils::ned_nwu_rotation(init_vals.velocity);
+
+    xd = xd +  x0.position + x0.velocity*tau;
 //    xd = simulator_utils::ned_nwu_rotation(xd);
     desired_state_t dss = {xd, b1d};
     this->move(dss);
