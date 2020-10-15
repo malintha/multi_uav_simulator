@@ -22,7 +22,6 @@ find_package(catkin REQUIRED COMPONENTS
         tf
         geo_controller
         message_generation
-        # quadrotor_msgs
         simulator_utils
         )
 

@@ -10,7 +10,9 @@
 Quadrotor::Quadrotor(int robot_id, double frequency, ros::NodeHandle &n)
         : robot_id(robot_id), frequency(frequency), nh(n) {
     sim_time = 0;
+    this->dt = 1/frequency;
     this->initialize(1 / frequency);
+    this->u << 0,0,0;
 }
 
 bool Quadrotor::initialize(double dt) {
@@ -42,7 +44,7 @@ bool Quadrotor::initialize(double dt) {
     this->setState(State::Autonomous);
     initPaths();
 
-    desired_state_sub = nh.subscribe("desired_state",100, &Quadrotor::desired_state_cb, this);
+    desired_state_sub = nh.subscribe("desired_state",10, &Quadrotor::desired_state_cb, this);
     state_pub = nh.advertise<simulator_utils::Waypoint>("current_state", 100);
     ROS_DEBUG_STREAM("Drone initialized " << robot_id);
     ROS_INFO_STREAM("Desired state subscriber topic: " << "robot_"<<robot_id<<"/desired_state");
@@ -78,7 +80,7 @@ void Quadrotor::setState(State m_state_) {
     this->m_state = m_state_;
 }
 
-void Quadrotor::move(double dt, const desired_state_t &d_state) {
+void Quadrotor::move(const desired_state_t &d_state) {
     control_out_t control = controller->get_control(dynamics->get_state(), d_state);
     dynamics->update(control, sim_time);
 
@@ -163,19 +165,23 @@ bool Quadrotor::load_init_vals() {
     return true;
 }
 
-void Quadrotor::desired_state_cb(const simulator_utils::WaypointConstPtr &waypoint) {
-    Eigen::Vector3d x{waypoint->position.x,waypoint->position.y,waypoint->position.z};
-    Eigen::Vector3d b1d{1,0,0};
-    desired_state.x = simulator_utils::ned_nwu_rotation(init_vals.position);
-    desired_state.b1 = b1d;
+void Quadrotor::desired_state_cb(const geometry_msgs::PointConstPtr &pt) {
+    this->u << pt->x, pt->y, pt->z;
+    this->tau = 0;
 }
 
 void Quadrotor::iteration(const ros::TimerEvent &e) {
+    // compute the next desired state using incoming control signal and current state
     Vector3d b1d(1, 0, 0);
+    Vector3d p = this->dynamics->get_state().position;
+    Vector3d v = this->dynamics->get_state().velocity;
+    Vector3d xd = 0.5 * u * pow(tau, 2) + v * tau + p;
+    ROS_DEBUG_STREAM("Robot: "<<robot_id<<" xd: "<<xd[0]<<" "<<xd[1]<<" "<<xd[2]);
+    tau = tau + dt;
     // get desired state from topic
-    Vector3d xd = simulator_utils::ned_nwu_rotation(init_vals.position);
+//    xd = simulator_utils::ned_nwu_rotation(xd);
     desired_state_t dss = {xd, b1d};
-    this->move(1 / frequency, dss);
+    this->move(dss);
     this->publish_path();
     this->publish_state();
 }

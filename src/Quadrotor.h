@@ -29,7 +29,7 @@ class Quadrotor {
 public:
     Quadrotor(int robot_id, double frequency, ros::NodeHandle &n);
 
-    void move(double dt, const desired_state_t &d_state);
+    void move(const desired_state_t &d_state);
 
     void setState(State m_state);
 
@@ -37,7 +37,7 @@ public:
 
     bool initialize(double dt);
 
-    void desired_state_cb(const simulator_utils::WaypointConstPtr &waypoint);
+    void desired_state_cb(const geometry_msgs::PointConstPtr &pt);
 
     void iteration(const ros::TimerEvent &e);
 
@@ -52,6 +52,10 @@ private:
     string localframe;
     gains_t gains;
     double frequency;
+    double dt;
+
+    Vector3d u;
+    double tau;
 
     ControllerImpl *controller;
     state_space_t state_space;
