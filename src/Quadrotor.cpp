@@ -44,8 +44,8 @@ bool Quadrotor::initialize(double dt) {
     this->setState(State::Autonomous);
     initPaths();
 
-    desired_state_sub = nh.subscribe("desired_state",10, &Quadrotor::desired_state_cb, this);
-    state_pub = nh.advertise<simulator_utils::Waypoint>("current_state", 100);
+    desired_state_sub = nh.subscribe("desired_state",1, &Quadrotor::desired_state_cb, this);
+    state_pub = nh.advertise<simulator_utils::Waypoint>("current_state", 1);
     ROS_DEBUG_STREAM("Drone initialized " << robot_id);
     ROS_INFO_STREAM("Desired state subscriber topic: " << "robot_"<<robot_id<<"/desired_state");
     ROS_INFO_STREAM("State publisher topic: " << "robot_"<<robot_id<<"/current_state");
@@ -162,31 +162,31 @@ bool Quadrotor::load_init_vals() {
     init_vals.omega = Vector3d(omega.data());
 
     this->x0.position = simulator_utils::ned_nwu_rotation(init_vals.position);
+    this->x0.velocity = simulator_utils::ned_nwu_rotation(init_vals.velocity);
 
     ROS_DEBUG_STREAM("Loaded the drone initialization values");
     return true;
 }
 
 void Quadrotor::desired_state_cb(const geometry_msgs::PointConstPtr &pt) {
-//    this->init_vals.position = this->dynamics->get_state().position;
-//    this->init_vals.velocity = this->dynamics->get_state().velocity;
     this->x0.position = this->dynamics->get_state().position;
     this->x0.velocity = this->dynamics->get_state().velocity;
     this->u << pt->x, pt->y, pt->z;
+    this->u = simulator_utils::ned_nwu_rotation(this->u);
     this->tau = 0;
 }
 
+// xd should be in NED frame and so does dynamics and controller.
 void Quadrotor::iteration(const ros::TimerEvent &e) {
     // compute the next desired state using incoming control signal and current state
     Vector3d b1d(1, 0, 0);
     tau = tau + dt;
     // get desired state from topic
     Vector3d xd = 0.5 * u * pow(tau, 2);
-//    Vector3d p = simulator_utils::ned_nwu_rotation(init_vals.position);
-//    Vector3d v = simulator_utils::ned_nwu_rotation(init_vals.velocity);
-
     xd = xd +  x0.position + x0.velocity*tau;
-//    xd = simulator_utils::ned_nwu_rotation(xd);
+    xd[2] = 0;
+//    if(robot_id==1)
+//    ROS_DEBUG_STREAM("xd: "<<xd[0]<<" "<<xd[1]<<" "<<xd[2]);
     desired_state_t dss = {xd, b1d};
     this->move(dss);
     this->publish_path();
