@@ -172,7 +172,7 @@ void Quadrotor::desired_state_cb(const geometry_msgs::PointConstPtr &pt) {
     this->x0.position = this->dynamics->get_state().position;
     this->x0.velocity = this->dynamics->get_state().velocity;
     this->u << pt->x, pt->y, pt->z;
-    this->u = simulator_utils::ned_nwu_rotation(this->u);
+//    this->u = simulator_utils::ned_nwu_rotation(this->u);
     this->tau = 0;
 }
 
@@ -216,12 +216,13 @@ void Quadrotor::run() {
 void Quadrotor::publish_state() {
     simulator_utils::Waypoint wp;
     geometry_msgs::Point p,v;
-    p.x = state_space.position[0];
-    p.y = state_space.position[1];
-    p.z = state_space.position[2];
-    v.x = state_space.velocity[0];
-    v.y = state_space.velocity[1];
-    v.z = state_space.velocity[2];
+    state_space_t ned_state = this->dynamics->get_state();
+    p.x = ned_state.position[0];
+    p.y = ned_state.position[1];
+    p.z = ned_state.position[2];
+    v.x = ned_state.velocity[0];
+    v.y = ned_state.velocity[1];
+    v.z = ned_state.velocity[2];
     wp.position = p;
     wp.velocity = v;
     wp.acceleration.x = wp.acceleration.y = wp.acceleration.z = 0;
