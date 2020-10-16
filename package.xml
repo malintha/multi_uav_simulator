@@ -57,7 +57,8 @@
   <exec_depend>roscpp</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>geo_controller</exec_depend>
-  <depend>simulator_utils</depend>
+  <depend>mav_trajectory_generation</depend>
+
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

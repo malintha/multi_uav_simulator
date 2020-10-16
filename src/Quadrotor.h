@@ -10,6 +10,10 @@
 #include <eigen3/Eigen/Dense>
 #include "ros/ros.h"
 #include "simulator_utils/Waypoint.h"
+#include "Trajectory_t.h"
+
+#include <mav_trajectory_generation/polynomial_optimization_nonlinear.h>
+#include <mav_trajectory_generation/trajectory_sampling.h>
 
 #ifndef state
 #define state
@@ -24,23 +28,18 @@ enum State {
 
 using namespace Eigen;
 using namespace std;
+#include "std_msgs/Float32MultiArray.h"
+
 
 class Quadrotor {
 public:
     Quadrotor(int robot_id, double frequency, ros::NodeHandle &n);
-
     void move(const desired_state_t &d_state);
-
     void setState(State m_state);
-
     State getState();
-
     bool initialize(double dt);
-
-    void desired_state_cb(const geometry_msgs::PointConstPtr &pt);
-
+    void desired_pos_cb(const geometry_msgs::Point &pt);
     void iteration(const ros::TimerEvent &e);
-
     void run();
 
 private:
@@ -56,7 +55,9 @@ private:
 
     Vector3d u;
     double tau;
-    state_space_t x0;
+    bool set_target = false;
+    geometry_msgs::Point target_pos;
+    mav_trajectory_generation::Trajectory traj;
 
     ControllerImpl *controller;
     state_space_t state_space;
@@ -79,6 +80,7 @@ private:
     void send_transform();
     void publish_path();
     void publish_state();
+    mav_trajectory_generation::Trajectory get_opt_traj(const simulator_utils::Waypoint &wp, geometry_msgs::Point pe);
 
 };
 

@@ -10,7 +10,7 @@ uav:
 
 # define the initial positions of each robot in NWU frame
 robot_1:
-  position: [1, 1, 0]
+  position: [2, 2, 0]
   velocity: [0, 0, 0]
 #  rotation: [1, 0, 0, 0, -0.9995, -0.0314, 0, 0.0314, -0.9995]
   rotation: [1, 0, 0, 0, 1, 0, 0, 0, 1]

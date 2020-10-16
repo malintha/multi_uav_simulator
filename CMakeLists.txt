@@ -23,6 +23,7 @@ find_package(catkin REQUIRED COMPONENTS
         geo_controller
         message_generation
         simulator_utils
+        mav_trajectory_generation
         )
 
 catkin_package(
@@ -40,7 +41,8 @@ add_executable(multi_uav_simulator
         src/DynamicsProvider.h
         src/cfSimUtils.cpp
         src/Quadrotor.cpp
-        src/Quadrotor.h)
+        src/Quadrotor.h
+        src/Trajectory_t.h)
 
 target_link_libraries(multi_uav_simulator
         GSL::gsl

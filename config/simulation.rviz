@@ -15,7 +15,7 @@ Panels:
         - /Marker3
         - /Marker4
       Splitter Ratio: 0.4576271176338196
-    Tree Height: 560
+    Tree Height: 363
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -247,5 +247,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1252
-  X: 626
-  Y: 137
+  X: 26
+  Y: 133
