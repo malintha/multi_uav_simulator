@@ -55,13 +55,15 @@ private:
 
     Vector3d u;
     double tau;
-    bool set_target = false;
-    geometry_msgs::Point target_pos;
+    bool set_init_target = false;
+    geometry_msgs::Point target_next;
+    bool set_next_target = false;
+    Vector3d target_pos;
     mav_trajectory_generation::Trajectory traj;
+    mav_trajectory_generation::Trajectory traj_temp;
 
     ControllerImpl *controller;
     state_space_t state_space;
-    desired_state_t desired_state;
     ros::NodeHandle nh;
     string robot_link_name;
     DynamicsProvider *dynamics;
@@ -73,6 +75,7 @@ private:
     ros::Subscriber desired_state_sub;
     ros::Publisher state_pub;
 
+    void do_rhp();
     void initPaths();
     void set_state_space();
     bool load_params();
@@ -80,7 +83,7 @@ private:
     void send_transform();
     void publish_path();
     void publish_state();
-    mav_trajectory_generation::Trajectory get_opt_traj(const simulator_utils::Waypoint &wp, geometry_msgs::Point pe);
+    mav_trajectory_generation::Trajectory get_opt_traj(const opt_t &ps, Vector3d pe);
 
 };
 

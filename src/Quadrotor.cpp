@@ -7,26 +7,24 @@
 #include <ros/console.h>
 #include "simulator_utils/simulator_utils.h"
 
-mav_trajectory_generation::Trajectory Quadrotor::get_opt_traj(const simulator_utils::Waypoint &wp, geometry_msgs::Point pe) {
+mav_trajectory_generation::Trajectory Quadrotor::get_opt_traj(const opt_t &ps, Vector3d pe) {
     mav_trajectory_generation::Vertex::Vector vertices;
     mav_trajectory_generation::Vertex v_s(3), v_e(3);
     const int derivative_to_optimize = mav_trajectory_generation::derivative_order::JERK;
-    Vector3d pos = {wp.position.x, wp.position.y, wp.position.z};
-    Vector3d vel = {wp.velocity.x, wp.velocity.y, wp.velocity.z};
-    Vector3d acc = {wp.acceleration.x, wp.acceleration.y, wp.acceleration.z};
-    Vector3d pos_e = {pe.x,pe.y,pe.z};
-    v_s.addConstraint(mav_trajectory_generation::derivative_order::POSITION, pos);
-    v_s.addConstraint(mav_trajectory_generation::derivative_order::VELOCITY, vel);
-    v_s.addConstraint(mav_trajectory_generation::derivative_order::ACCELERATION, acc);
 
-    v_e.makeStartOrEnd(pos_e, mav_trajectory_generation::derivative_order::POSITION);
+    v_s.addConstraint(mav_trajectory_generation::derivative_order::POSITION, ps.position);
+    v_s.addConstraint(mav_trajectory_generation::derivative_order::VELOCITY, ps.velocity);
+    v_s.addConstraint(mav_trajectory_generation::derivative_order::ACCELERATION, ps.acceleration);
+    v_s.addConstraint(mav_trajectory_generation::derivative_order::ACCELERATION, ps.jerk);
+
+    v_e.makeStartOrEnd(pe, mav_trajectory_generation::derivative_order::POSITION);
     vertices.push_back(v_s);
     vertices.push_back(v_e);
 
     mav_trajectory_generation::PolynomialOptimization<8> opt(3);
     std::vector<double> segment_times;
-    const double v_max = 2.0;
-    const double a_max = 2.0;
+    const double v_max = 1.0;
+    const double a_max = 1.0;
     segment_times = estimateSegmentTimes(vertices, v_max, a_max);
     opt.setupFromVertices(vertices, segment_times, derivative_to_optimize);
     opt.solveLinear();
@@ -87,7 +85,6 @@ bool Quadrotor::initialize(double dt) {
 
 void Quadrotor::initPaths() {
     stringstream ss;
-
     marker_pub = nh.advertise<visualization_msgs::Marker>(
             ros::names::append(robot_link_name, "path"), 10);
 
@@ -189,71 +186,55 @@ bool Quadrotor::load_init_vals() {
     init_vals.R = Matrix3d(R.data());
     init_vals.omega = Vector3d(omega.data());
 
-//    this->x0.position = simulator_utils::ned_nwu_rotation(init_vals.position);
-//    this->x0.velocity = simulator_utils::ned_nwu_rotation(init_vals.velocity);
-
+    this->target_pos = simulator_utils::ned_nwu_rotation(init_vals.position);
     ROS_DEBUG_STREAM("Loaded the drone initialization values");
     return true;
 }
 
 void Quadrotor::desired_pos_cb(const geometry_msgs::Point &pt) {
     // first get current state
-    simulator_utils::Waypoint wp_c;
-    wp_c.position.x = dynamics->get_state().position.x();
-    wp_c.position.y = dynamics->get_state().position.y();
-    wp_c.position.z = dynamics->get_state().position.z();
-    wp_c.velocity.x = dynamics->get_state().velocity.x();
-    wp_c.velocity.y = dynamics->get_state().velocity.y();
-    wp_c.velocity.z = dynamics->get_state().velocity.z();
-    Vector3d p_c = {wp_c.position.x, wp_c.position.y, wp_c.position.z};
+//    simulator_utils::Waypoint wp_c;
+//    Vector3d p1 = {pt.x, pt.y, pt.z};
+    //accept iff incoming pos is at least 0.25 further away from current position
+//    if((p1-p_c).norm() > 0.5)
+//        if (set_init_target) {
+//            // existing target
+//
+//
+//        }
+//        else {
+//            // initial state, when no traj is set
+//            this->target_pos = pt;
+//            wp_c.acceleration.x = 0;
+//            wp_c.acceleration.y = 0;
+//            wp_c.acceleration.z = 0;
+//            mav_trajectory_generation::Trajectory tr = get_opt_traj(wp_c, pt);
+//            this->traj = tr;
+//            this->tau = 0;
+//            ROS_DEBUG_STREAM("set init traj");
+//            this->set_init_target = true;
+//
+//        }
 
     Vector3d p1 = {pt.x, pt.y, pt.z};
-//    ROS_DEBUG_STREAM("recieved dis: "<<(p1-p_c).norm());
-    if((p1-p_c).norm() > 0.1)
-        if (set_target) {
-            Vector3d p2 = {target_pos.x, target_pos.y, target_pos.z};
-            mav_trajectory_generation::Trajectory tr_temp;
-            double T = 1;
-            if ((p2 - p1).norm() >= 0.1) {
-                simulator_utils::Waypoint wp;
-                if (tau < T) {
-                    // evaluate current traj at T
-                    Vector3d p = traj.evaluate(tau, mav_trajectory_generation::derivative_order::POSITION);
-                    Vector3d v = traj.evaluate(tau, mav_trajectory_generation::derivative_order::VELOCITY);
-                    Vector3d a = traj.evaluate(tau, mav_trajectory_generation::derivative_order::ACCELERATION);
-                    wp.position.x = p[0]; wp.position.y = p[1]; wp.position.z = p[2];
-                    wp.velocity.x = v[0]; wp.velocity.y = v[1]; wp.velocity.z = v[2];
-                    wp.acceleration.x = a[0]; wp.acceleration.y = a[1]; wp.acceleration.z = a[2];
-                } else {
-                    // use cuttent state
-                    Vector3d a = traj.evaluate(tau, mav_trajectory_generation::derivative_order::ACCELERATION);
-                    wp = wp_c;
-                    wp.acceleration.x = a[0]; wp.acceleration.y = a[1]; wp.acceleration.z = a[2];
-                }
-                tr_temp = get_opt_traj(wp, pt);
-                ROS_DEBUG_STREAM("computed new traj");
-
-            }
-
-            if (tau > T && !tr_temp.empty()) {
-                ROS_DEBUG_STREAM("set new traj. t_max: "<<tr_temp.getMaxTime());
-                this->traj = tr_temp;
-                this->tau = 0;
-            }
+    Vector3d p2 = target_pos;
+    if((p2 - p1).norm() >= 0.5) {
+        if(!set_init_target) {
+            set_init_target = true;
+            // set init trajectory
+            Vector3d init_z = {0,0,0};
+            opt_t ps = {target_pos, init_z, init_z, init_z};
+            Vector3d pe = {pt.x, pt.y, pt.z};
+            this->traj = get_opt_traj(ps, pe);
+            this->target_pos = pe;
+            ROS_DEBUG_STREAM(robot_id<<" Set init trajectory");
         }
         else {
-            // initial state, when no traj is set
-            this->target_pos = pt;
-            wp_c.acceleration.x = 0;
-            wp_c.acceleration.y = 0;
-            wp_c.acceleration.z = 0;
-            mav_trajectory_generation::Trajectory tr = get_opt_traj(wp_c, pt);
-            this->traj = tr;
-            this->tau = 0;
-            ROS_DEBUG_STREAM("set init traj");
-            this->set_target = true;
-
+            this->target_next = pt;
+            this->set_next_target = true;
+            ROS_DEBUG_STREAM(robot_id<<" Set new target");
         }
+    }
 }
 
 // xd should be in NED frame and so does dynamics and controller.
@@ -262,19 +243,79 @@ void Quadrotor::iteration(const ros::TimerEvent &e) {
     Vector3d b1d(1, 0, 0);
     Vector3d xd;
     xd << simulator_utils::ned_nwu_rotation(init_vals.position);
-    if(this->set_target) {
-        if(abs(tau - traj.getMaxTime()) > dt)
-            tau = tau + dt;
-//        ROS_DEBUG_STREAM("tau: "<<tau);
+    if(this->set_init_target) {
+        if(set_next_target) {
+            do_rhp();
+        }
         xd = traj.evaluate(tau, mav_trajectory_generation::derivative_order::POSITION);
+
+        if(abs(tau - traj.getMaxTime()) > dt) {
+            tau = tau + dt;
+        }
     }
     // get desired state from topic
-//    xd[2] = 0;
-//    ROS_DEBUG_STREAM("xd: "<<xd[0]<<" "<<xd[1]<<" "<<xd[2]);
     desired_state_t dss = {xd, b1d};
     this->move(dss);
     this->publish_path();
     this->publish_state();
+}
+// if there is another target available, calculate a new trajectory
+// if the current tau is larger than T and there is another trajectory, switch to it
+void Quadrotor::do_rhp() {
+    double T = 1;
+    if (tau >= T || abs(tau - traj.getMaxTime()) < 1e-2) {
+        Vector3d pt = {target_next.x, target_next.y, target_next.z};
+        Vector3d ps = this->dynamics->get_state().position;
+        Vector3d vel = this->dynamics->get_state().velocity;
+        Vector3d acc = traj.evaluate(tau, mav_trajectory_generation::derivative_order::ACCELERATION);
+        Vector3d jerk = traj.evaluate(tau, mav_trajectory_generation::derivative_order::JERK);
+        opt_t wp = {ps, vel, acc, jerk};
+
+        mav_trajectory_generation::Trajectory tr_temp = get_opt_traj(wp, pt);
+        this->traj = tr_temp;
+        ROS_DEBUG_STREAM(robot_id << " Set new traj. Tau: "<<tau);
+
+        this->set_next_target = false;
+        tau = 0;
+    };
+
+//    mav_trajectory_generation::Trajectory tr_temp;
+//    // compute a traj iff the incoming pos is 0.25 away from the current target
+//        simulator_utils::Waypoint wp;
+////                if (tau < T) {
+//        // evaluate current traj at T
+//        Vector3d p = traj.evaluate(tau, mav_trajectory_generation::derivative_order::POSITION);
+//        Vector3d v = traj.evaluate(tau, mav_trajectory_generation::derivative_order::VELOCITY);
+//        Vector3d a = traj.evaluate(tau, mav_trajectory_generation::derivative_order::ACCELERATION);
+//        wp.position.x = p[0]; wp.position.y = p[1]; wp.position.z = p[2];
+//        wp.velocity.x = v[0]; wp.velocity.y = v[1]; wp.velocity.z = v[2];
+//        wp.acceleration.x = a[0]; wp.acceleration.y = a[1]; wp.acceleration.z = a[2];
+//                } else {
+//                    // use cuttent state
+//                    Vector3d a = traj.evaluate(tau, mav_trajectory_generation::derivative_order::ACCELERATION);
+//                    wp = wp_c;
+//                    wp.acceleration.x = a[0]; wp.acceleration.y = a[1]; wp.acceleration.z = a[2];
+//                    ROS_DEBUG_STREAM("computed new traj. Tau: "<<tau);
+//
+//                }
+
+//    }
+
+//    if ((tau > T || abs(tau - traj.getMaxTime())<dt) && !traj_temp.empty()) {
+//        ROS_DEBUG_STREAM("robot: "<<robot_id<<" setting new traj. current: "<<traj.getMaxTime()<<" tau: "<<tau);
+//        Vector3d pt0 = traj_temp.evaluate(0, mav_trajectory_generation::derivative_order::POSITION);
+//
+//        this->traj = traj_temp;
+//        traj_temp.clear();
+//
+//        // set new target position
+//        Vector3d pos = traj.evaluate(traj.getMaxTime(),mav_trajectory_generation::derivative_order::POSITION);
+//        this->target_pos.x = pos[0];
+//        this->target_pos.y = pos[1];
+//        this->target_pos.z = pos[2];
+//
+//        this->tau = 0;
+//    }
 }
 
 void Quadrotor::publish_path() {
