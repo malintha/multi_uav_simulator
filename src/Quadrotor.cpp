@@ -15,7 +15,7 @@ mav_trajectory_generation::Trajectory Quadrotor::get_opt_traj(const opt_t &ps, V
     v_s.addConstraint(mav_trajectory_generation::derivative_order::POSITION, ps.position);
     v_s.addConstraint(mav_trajectory_generation::derivative_order::VELOCITY, ps.velocity);
     v_s.addConstraint(mav_trajectory_generation::derivative_order::ACCELERATION, ps.acceleration);
-    v_s.addConstraint(mav_trajectory_generation::derivative_order::ACCELERATION, ps.jerk);
+    v_s.addConstraint(mav_trajectory_generation::derivative_order::JERK, ps.jerk);
 
     v_e.makeStartOrEnd(pe, mav_trajectory_generation::derivative_order::POSITION);
     vertices.push_back(v_s);
@@ -262,11 +262,11 @@ void Quadrotor::iteration(const ros::TimerEvent &e) {
 // if there is another target available, calculate a new trajectory
 // if the current tau is larger than T and there is another trajectory, switch to it
 void Quadrotor::do_rhp() {
-    double T = 1.2;
+    double T = 0.5;
     if (tau >= T || abs(tau - traj.getMaxTime()) < 1e-2) {
         Vector3d pt = {target_next.x, target_next.y, target_next.z};
-        Vector3d ps = this->dynamics->get_state().position;
-        Vector3d vel = this->dynamics->get_state().velocity;
+        Vector3d ps = traj.evaluate(tau, mav_trajectory_generation::derivative_order::POSITION);
+        Vector3d vel = traj.evaluate(tau, mav_trajectory_generation::derivative_order::VELOCITY);
         Vector3d acc = traj.evaluate(tau, mav_trajectory_generation::derivative_order::ACCELERATION);
         Vector3d jerk = traj.evaluate(tau, mav_trajectory_generation::derivative_order::JERK);
         opt_t wp = {ps, vel, acc, jerk};
@@ -327,8 +327,8 @@ void Quadrotor::publish_path() {
     p.z = x[2];
     m.points.push_back(p);
 
-//    if (m.points.size() > 100)
-//        m.points.pop_back();
+    if (m.points.size() > 500)
+        m.points.erase(m.points.begin());
 
     marker_pub.publish(m);
 }

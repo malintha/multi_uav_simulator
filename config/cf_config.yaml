@@ -44,7 +44,7 @@ robot_4:
 
 robot_5:
     #  position: [2, -2, 0]
-    position: [ 2, -1, 0 ]
+    position: [ 0, 0, 0 ]
     velocity: [ 0, 0, 0 ]
     rotation: [ 1, 0, 0, 0, 1, 0, 0, 0, 1 ]
     #  rotation: [1, 0, 0, 0, -0.9995, -0.0314, 0, 0.0314, -0.9995]

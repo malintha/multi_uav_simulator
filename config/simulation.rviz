@@ -188,18 +188,23 @@ Visualization Manager:
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: false
-      Enabled: false
+      Enabled: true
       Links:
         All Links Enabled: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
+        base_link5:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
       Name: RobotModel
       Robot Description: cf5
       TF Prefix: ""
       Update Interval: 0
-      Value: false
+      Value: true
       Visual Enabled: true
     - Class: rviz/Marker
       Enabled: true
@@ -252,10 +257,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.3247967958450317
+      Pitch: 0.564797043800354
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 6.2535786628723145
+      Yaw: 6.243581295013428
     Saved: ~
 Window Geometry:
   Displays:
@@ -274,4 +279,4 @@ Window Geometry:
     collapsed: false
   Width: 1252
   X: 617
-  Y: 164
+  Y: 192
