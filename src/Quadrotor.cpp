@@ -262,7 +262,7 @@ void Quadrotor::iteration(const ros::TimerEvent &e) {
 // if there is another target available, calculate a new trajectory
 // if the current tau is larger than T and there is another trajectory, switch to it
 void Quadrotor::do_rhp() {
-    double T = 1;
+    double T = 1.2;
     if (tau >= T || abs(tau - traj.getMaxTime()) < 1e-2) {
         Vector3d pt = {target_next.x, target_next.y, target_next.z};
         Vector3d ps = this->dynamics->get_state().position;
@@ -327,8 +327,8 @@ void Quadrotor::publish_path() {
     p.z = x[2];
     m.points.push_back(p);
 
-    if (m.points.size() > 100)
-        m.points.pop_back();
+//    if (m.points.size() > 100)
+//        m.points.pop_back();
 
     marker_pub.publish(m);
 }
