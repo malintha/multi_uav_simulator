@@ -7,10 +7,10 @@
 #include <ros/console.h>
 #include "simulator_utils/simulator_utils.h"
 
-mav_trajectory_generation::Trajectory Quadrotor::get_opt_traj(const opt_t &ps, Vector3d pe) {
+mav_trajectory_generation::Trajectory Quadrotor::get_opt_traj(const opt_t &ps, const Vector3d& pe) {
     mav_trajectory_generation::Vertex::Vector vertices;
     mav_trajectory_generation::Vertex v_s(3), v_e(3);
-    const int derivative_to_optimize = mav_trajectory_generation::derivative_order::JERK;
+    const int derivative_to_optimize = mav_trajectory_generation::derivative_order::ACCELERATION;
 
     v_s.addConstraint(mav_trajectory_generation::derivative_order::POSITION, ps.position);
     v_s.addConstraint(mav_trajectory_generation::derivative_order::VELOCITY, ps.velocity);
@@ -23,8 +23,8 @@ mav_trajectory_generation::Trajectory Quadrotor::get_opt_traj(const opt_t &ps, V
 
     mav_trajectory_generation::PolynomialOptimization<8> opt(3);
     std::vector<double> segment_times;
-    const double v_max = 1.0;
-    const double a_max = 1.0;
+    const double v_max = 0.5;
+    const double a_max = 0.5;
     segment_times = estimateSegmentTimes(vertices, v_max, a_max);
     opt.setupFromVertices(vertices, segment_times, derivative_to_optimize);
     opt.solveLinear();
@@ -41,7 +41,7 @@ Quadrotor::Quadrotor(int robot_id, double frequency, ros::NodeHandle &n)
     this->u << 0,0,0;
 }
 
-bool Quadrotor::initialize(double dt) {
+bool Quadrotor::initialize(double dt_) {
     m_state = State::Idle;
     // load quad params
     if (!load_params()) {
@@ -65,13 +65,13 @@ bool Quadrotor::initialize(double dt) {
     state_space.omega = init_vals.omega;
 
     dynamics = new DynamicsProvider(params, init_vals);
-    controller = new ControllerImpl(params, init_vals, gains, dt);
+    controller = new ControllerImpl(params, init_vals, gains, dt_);
 
     this->setState(State::Autonomous);
     initPaths();
 
-    desired_state_sub = nh.subscribe("desired_state", 1, &Quadrotor::desired_pos_cb, this);
-    state_pub = nh.advertise<simulator_utils::Waypoint>("current_state", 1);
+    desired_state_sub = nh.subscribe("desired_state", 10, &Quadrotor::desired_pos_cb, this);
+    state_pub = nh.advertise<simulator_utils::Waypoint>("current_state", 10);
     ROS_DEBUG_STREAM("Drone initialized " << robot_id);
     ROS_INFO_STREAM("Desired state subscriber topic: " << "robot_"<<robot_id<<"/desired_state");
     ROS_INFO_STREAM("State publisher topic: " << "robot_"<<robot_id<<"/current_state");
@@ -84,21 +84,34 @@ bool Quadrotor::initialize(double dt) {
 }
 
 void Quadrotor::initPaths() {
-    stringstream ss;
     marker_pub = nh.advertise<visualization_msgs::Marker>(
             ros::names::append(robot_link_name, "path"), 10);
 
-    m.header.stamp = ros::Time::now();
+    goal_pub = nh.advertise<visualization_msgs::Marker>(
+            ros::names::append(robot_link_name, "goal"), 10);
+
+    g.header.stamp = m.header.stamp = ros::Time::now();
     m.type = visualization_msgs::Marker::LINE_STRIP;
-    m.header.frame_id = worldframe;
+    g.header.frame_id = m.header.frame_id = worldframe;
     m.action = visualization_msgs::Marker::ADD;
     m.id = this->robot_id;
-    m.color.r = 1;
-    m.color.g = 0;
+    m.color.r = 0;
+    m.color.g = 1;
     m.color.b = 0;
     m.color.a = 1;
     m.scale.x = 0.02;
     m.pose.orientation.w = 1.0;
+    g.id = this->robot_id + 20;
+    g.type = visualization_msgs::Marker::CUBE;
+    g.action = visualization_msgs::Marker::ADD;
+    g.color.r = 1;
+    g.color.g = 0;
+    g.color.b = 0;
+    g.color.a = 1;
+    g.scale.x = 0.1;
+    g.scale.y = 0.1;
+    g.scale.z = 0.1;
+
 }
 
 void Quadrotor::setState(State m_state_) {
@@ -192,33 +205,9 @@ bool Quadrotor::load_init_vals() {
 }
 
 void Quadrotor::desired_pos_cb(const geometry_msgs::Point &pt) {
-    // first get current state
-//    simulator_utils::Waypoint wp_c;
-//    Vector3d p1 = {pt.x, pt.y, pt.z};
-    //accept iff incoming pos is at least 0.25 further away from current position
-//    if((p1-p_c).norm() > 0.5)
-//        if (set_init_target) {
-//            // existing target
-//
-//
-//        }
-//        else {
-//            // initial state, when no traj is set
-//            this->target_pos = pt;
-//            wp_c.acceleration.x = 0;
-//            wp_c.acceleration.y = 0;
-//            wp_c.acceleration.z = 0;
-//            mav_trajectory_generation::Trajectory tr = get_opt_traj(wp_c, pt);
-//            this->traj = tr;
-//            this->tau = 0;
-//            ROS_DEBUG_STREAM("set init traj");
-//            this->set_init_target = true;
-//
-//        }
-
     Vector3d p1 = {pt.x, pt.y, pt.z};
     Vector3d p2 = target_pos;
-    if((p2 - p1).norm() >= 0.5) {
+    if((p2 - p1).norm() >= 0.25) {
         if(!set_init_target) {
             set_init_target = true;
             // set init trajectory
@@ -231,6 +220,7 @@ void Quadrotor::desired_pos_cb(const geometry_msgs::Point &pt) {
         }
         else {
             this->target_next = pt;
+            this->target_pos = {pt.x, pt.y, pt.z};
             this->set_next_target = true;
             ROS_DEBUG_STREAM(robot_id<<" Set new target");
         }
@@ -249,7 +239,7 @@ void Quadrotor::iteration(const ros::TimerEvent &e) {
         }
         xd = traj.evaluate(tau, mav_trajectory_generation::derivative_order::POSITION);
 
-        if(abs(tau - traj.getMaxTime()) > dt) {
+        if(abs(tau - traj.getMaxTime()) >= dt) {
             tau = tau + dt;
         }
     }
@@ -262,7 +252,7 @@ void Quadrotor::iteration(const ros::TimerEvent &e) {
 // if there is another target available, calculate a new trajectory
 // if the current tau is larger than T and there is another trajectory, switch to it
 void Quadrotor::do_rhp() {
-    double T = 0.5;
+    double T = 0.25;
     if (tau >= T || abs(tau - traj.getMaxTime()) < 1e-2) {
         Vector3d pt = {target_next.x, target_next.y, target_next.z};
         Vector3d ps = traj.evaluate(tau, mav_trajectory_generation::derivative_order::POSITION);
@@ -278,44 +268,6 @@ void Quadrotor::do_rhp() {
         this->set_next_target = false;
         tau = 0;
     };
-
-//    mav_trajectory_generation::Trajectory tr_temp;
-//    // compute a traj iff the incoming pos is 0.25 away from the current target
-//        simulator_utils::Waypoint wp;
-////                if (tau < T) {
-//        // evaluate current traj at T
-//        Vector3d p = traj.evaluate(tau, mav_trajectory_generation::derivative_order::POSITION);
-//        Vector3d v = traj.evaluate(tau, mav_trajectory_generation::derivative_order::VELOCITY);
-//        Vector3d a = traj.evaluate(tau, mav_trajectory_generation::derivative_order::ACCELERATION);
-//        wp.position.x = p[0]; wp.position.y = p[1]; wp.position.z = p[2];
-//        wp.velocity.x = v[0]; wp.velocity.y = v[1]; wp.velocity.z = v[2];
-//        wp.acceleration.x = a[0]; wp.acceleration.y = a[1]; wp.acceleration.z = a[2];
-//                } else {
-//                    // use cuttent state
-//                    Vector3d a = traj.evaluate(tau, mav_trajectory_generation::derivative_order::ACCELERATION);
-//                    wp = wp_c;
-//                    wp.acceleration.x = a[0]; wp.acceleration.y = a[1]; wp.acceleration.z = a[2];
-//                    ROS_DEBUG_STREAM("computed new traj. Tau: "<<tau);
-//
-//                }
-
-//    }
-
-//    if ((tau > T || abs(tau - traj.getMaxTime())<dt) && !traj_temp.empty()) {
-//        ROS_DEBUG_STREAM("robot: "<<robot_id<<" setting new traj. current: "<<traj.getMaxTime()<<" tau: "<<tau);
-//        Vector3d pt0 = traj_temp.evaluate(0, mav_trajectory_generation::derivative_order::POSITION);
-//
-//        this->traj = traj_temp;
-//        traj_temp.clear();
-//
-//        // set new target position
-//        Vector3d pos = traj.evaluate(traj.getMaxTime(),mav_trajectory_generation::derivative_order::POSITION);
-//        this->target_pos.x = pos[0];
-//        this->target_pos.y = pos[1];
-//        this->target_pos.z = pos[2];
-//
-//        this->tau = 0;
-//    }
 }
 
 void Quadrotor::publish_path() {
@@ -330,6 +282,15 @@ void Quadrotor::publish_path() {
     if (m.points.size() > 500)
         m.points.erase(m.points.begin());
 
+    g.pose.position.x = this->target_pos[0];
+    g.pose.position.y = -this->target_pos[1];
+    g.pose.position.z = this->target_pos[2];
+
+    g.pose.orientation.x = 0.0;
+    g.pose.orientation.y = 0.0;
+    g.pose.orientation.z = 0.0;
+    g.pose.orientation.w = 1.0;
+    goal_pub.publish(g);
     marker_pub.publish(m);
 }
 

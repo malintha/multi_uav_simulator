@@ -37,7 +37,7 @@ public:
     void move(const desired_state_t &d_state);
     void setState(State m_state);
     State getState();
-    bool initialize(double dt);
+    bool initialize(double dt_);
     void desired_pos_cb(const geometry_msgs::Point &pt);
     void iteration(const ros::TimerEvent &e);
     void run();
@@ -70,8 +70,8 @@ private:
     params_t params;
     init_vals_t init_vals;
 
-    ros::Publisher marker_pub;
-    visualization_msgs::Marker m;
+    ros::Publisher marker_pub, goal_pub;
+    visualization_msgs::Marker m, g;
     ros::Subscriber desired_state_sub;
     ros::Publisher state_pub;
 
@@ -83,7 +83,7 @@ private:
     void send_transform();
     void publish_path();
     void publish_state();
-    mav_trajectory_generation::Trajectory get_opt_traj(const opt_t &ps, Vector3d pe);
+    static mav_trajectory_generation::Trajectory get_opt_traj(const opt_t &ps, const Vector3d& pe);
 
 };
 
