@@ -2,19 +2,12 @@
 
   <param name="count" value="4"/>
 
-  <param name="cf1" command="$(find xacro)/xacro.py $(find multi_uav_simulator)/cf_description/urdf/cf1.urdf.xacro" />
-  <param name="cf2" command="$(find xacro)/xacro.py $(find multi_uav_simulator)/cf_description/urdf/cf2.urdf.xacro" />
-  <param name="cf3" command="$(find xacro)/xacro.py $(find multi_uav_simulator)/cf_description/urdf/cf3.urdf.xacro" />
-  <param name="cf4" command="$(find xacro)/xacro.py $(find multi_uav_simulator)/cf_description/urdf/cf4.urdf.xacro" />
+  <param name="cf1" command="$(find xacro)/xacro --inorder $(find multi_uav_simulator)/cf_description/urdf/cf1.urdf.xacro" />
+  <param name="cf2" command="$(find xacro)/xacro --inorder $(find multi_uav_simulator)/cf_description/urdf/cf2.urdf.xacro" />
+  <param name="cf3" command="$(find xacro)/xacro --inorder $(find multi_uav_simulator)/cf_description/urdf/cf3.urdf.xacro" />
+  <param name="cf4" command="$(find xacro)/xacro --inorder $(find multi_uav_simulator)/cf_description/urdf/cf4.urdf.xacro" />
 
- <!-- <param name="cf5" command="$(find xacro)/xacro.py $(find multi_uav_simulator)/cf_description/urdf/cf5.urdf.xacro" />
-<param name="cf6" command="$(find xacro)/xacro.py $(find multi_uav_simulator)/cf_description/urdf/cf6.urdf.xacro" />
-<param name="cf7" command="$(find xacro)/xacro.py $(find multi_uav_simulator)/cf_description/urdf/cf7.urdf.xacro" />
-<param name="cf8" command="$(find xacro)/xacro.py $(find multi_uav_simulator)/cf_description/urdf/cf8.urdf.xacro" />
-<param name="cf9" command="$(find xacro)/xacro.py $(find multi_uav_simulator)/cf_description/urdf/cf9.urdf.xacro" />
-<param name="cf10" command="$(find xacro)/xacro.py $(find multi_uav_simulator)/cf_description/urdf/cf10.urdf.xacro" />
-<param name="cf11" command="$(find xacro)/xacro.py $(find multi_uav_simulator)/cf_description/urdf/cf11.urdf.xacro" />
-<param name="cf12" command="$(find xacro)/xacro.py $(find multi_uav_simulator)/cf_description/urdf/cf12.urdf.xacro" /> -->
+
 
   <!-- Vehicle Parameters -->
   <rosparam file="$(find multi_uav_simulator)/config/cf_config.yaml"/>
