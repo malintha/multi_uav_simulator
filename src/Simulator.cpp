@@ -53,8 +53,14 @@ public:
             init_vals_t init_vals = quad->get_init_vals();
             Vector3d xd = simulator_utils::ned_nwu_rotation(init_vals.position);
             Vector3d b1d(1, 0, 0);
+            
+            Vector3d x1(0.1*t, 0.1*sin(M_PI*t), 0.1*cos(M_PI*t));
+            xd = xd + x1;
+            
             desired_state_t dss = {(xd), b1d};
             quad->move(dt, dss);
+
+            // std::cout << t <<std::endl;
 
             Vector3d x = (quad->get_dynamics()->get_state().position);
             x[1] = -x[1];
