@@ -2,6 +2,8 @@
 
 An efficient and robust multi drone simulator based on ROS (Robot Operating System). The dynamics of the drones are modeled using a set of ODEs and solved via GSL. The trajectory tracking is performed using the geometric tracking controller proposed in [2], and a standalone implementation of the same can be found at https://github.com/malintha/geo_controller/.
 
+Checkout the ``crazyflie`` branch for the tuned controller for Carzyflie nanodrone. 
+
 ![Cover Image](https://raw.githubusercontent.com/Malintha/multi_uav_simulator/master/cover.gif)
 
 **Install dependencies**
