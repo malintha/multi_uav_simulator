@@ -1,4 +1,4 @@
-# Multi-UAV-Simulator For Crazyflie 2.0 Nano-drone
+# Multi-UAV-Simulator 
 
 An efficient and robust multi drone simulator based on ROS (Robot Operating System). The dynamics of the drones are modeled using a set of ODEs and solved via GSL. The trajectory tracking is performed using the geometric tracking controller proposed in [2], and a standalone implementation of the same can be found at https://github.com/malintha/geo_controller/. Consider citing our work [1] if you find this code helpful for your publications.
 
