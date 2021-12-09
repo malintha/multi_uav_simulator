@@ -27,29 +27,6 @@ Run the simulator
     source devel/setup.bash
     roslaunch multi_uav_simulator simu.launch
 
-[1] Our work based on this controller:
-
-    @inproceedings{fernando2019formation,
-    title={Formation control and navigation of a quadrotor swarm},
-    author={Fernando, Malintha and Liu, Lantao},
-    booktitle={2019 International Conference on Unmanned Aircraft Systems (ICUAS)},
-    pages={284--291},
-    year={2019},
-    organization={IEEE}
-    }
-
-[2] Original paper on the geometric tracking controller:
-
-    @inproceedings{lee2010geometric,
-    title={Geometric tracking control of a quadrotor UAV on SE (3)},
-    author={Lee, Taeyoung and Leok, Melvin and McClamroch, N Harris},
-    booktitle={49th IEEE conference on decision and control (CDC)},
-    pages={5420--5425},
-    year={2010},
-    organization={IEEE}
-    }
-
-
 **Adding a new drone to the environment**
 
 SwarmSim2 uses xacro to spawn new models into the simulation environment. Out of the box, it has 5 drones in the environment. If you need to add a sixth drone, simply follow the steps below.
@@ -71,3 +48,25 @@ SwarmSim2 uses xacro to spawn new models into the simulation environment. Out of
 
 
 3) Finally, to visualize the newly added drone, add a robot_model visualization type to RViz. Change its description to corresponding param name of the newly added element in the launch file. i.e.: "`cf6`".
+
+[1] Our work based on this controller:
+
+    @inproceedings{fernando2019formation,
+    title={Formation control and navigation of a quadrotor swarm},
+    author={Fernando, Malintha and Liu, Lantao},
+    booktitle={2019 International Conference on Unmanned Aircraft Systems (ICUAS)},
+    pages={284--291},
+    year={2019},
+    organization={IEEE}
+    }
+
+[2] Original paper on the geometric tracking controller:
+
+    @inproceedings{lee2010geometric,
+    title={Geometric tracking control of a quadrotor UAV on SE (3)},
+    author={Lee, Taeyoung and Leok, Melvin and McClamroch, N Harris},
+    booktitle={49th IEEE conference on decision and control (CDC)},
+    pages={5420--5425},
+    year={2010},
+    organization={IEEE}
+    }
