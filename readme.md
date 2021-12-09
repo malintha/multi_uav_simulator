@@ -33,7 +33,7 @@ SwarmSim2 uses xacro to spawn new models into the simulation environment. Out of
 
 1) In the `launch/simu.launch` file, add a new line with the corresponding drone id.  Make sure to change `<param name>` and the robot_id accordingly.  For example,
 
-		<param  name="cf6"  command="$(find xacro)/xacro --inorder $(find 		multi_uav_simulator)/cf_description/crazyflie.urdf.xacro robot_id:=6" />
+		<param  name="cf6"  command="$(find xacro)/xacro --inorder $(find multi_uav_simulator)/cf_description/crazyflie.urdf.xacro robot_id:=6" />
 
    
 2) In order to specify the initial conditions for the robot add a new block in the `config.yaml` file as below.
