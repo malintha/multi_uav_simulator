@@ -15,7 +15,7 @@
     </inertial>
 
     <visual>
-      <origin xyz="0 0 0" rpy="0 0 0" />
+      <origin xyz="0 0 0" rpy="4.71 0 0" />
       <geometry>
         <mesh filename="package://multi_uav_simulator/cf_description/crazyflie2.dae"/>
       </geometry>

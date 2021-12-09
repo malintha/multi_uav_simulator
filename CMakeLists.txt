@@ -36,10 +36,8 @@ include_directories(
 
 add_executable(multi_uav_simulator
         src/Simulator.cpp
-        src/cfSimUtils.h
         src/DynamicsProvider.cpp
         src/DynamicsProvider.h
-        src/cfSimUtils.cpp
         src/Quadrotor.cpp 
 	src/Quadrotor.h)
 

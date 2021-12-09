@@ -9,6 +9,8 @@ uav:
   gravity: 9.81
 
 # define the initial positions of each robot in NWU frame
+# uncomment the rotation matrix [1, 0, 0, 0, 1, 0, 0, 0, 1] for initialing the 
+# drones right side up.
 robot_1:
   position: [2, 2, 0]
   velocity: [0, 0, 0]
@@ -31,8 +33,13 @@ robot_3:
   omega: [0, 0, 0]
 
 robot_4:
-  position: [2, -2,0]
+  position: [2, -2, 0]
   velocity: [0, 0, 0]
-  #  rotation: [1, 0, 0, 0, 1, 0, 0, 0, 1]
+  rotation: [1, 0, 0, 0, -0.9995, -0.0314, 0, 0.0314, -0.9995]
+  omega: [0, 0, 0]
+
+robot_5:
+  position: [2, -4, 0]
+  velocity: [0, 0, 0]
   rotation: [1, 0, 0, 0, -0.9995, -0.0314, 0, 0.0314, -0.9995]
   omega: [0, 0, 0]
