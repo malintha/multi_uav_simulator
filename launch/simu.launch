@@ -2,12 +2,12 @@
 <!-- set the number of drones you want to simulate -->
   <param name="count" value="5"/>
 
-<!-- add a new line for each new drone pointing to the corresponding xacro description. -->
-  <param name="cf1" command="$(find xacro)/xacro --inorder $(find multi_uav_simulator)/cf_description/urdf/cf1.urdf.xacro" />
-  <param name="cf2" command="$(find xacro)/xacro --inorder $(find multi_uav_simulator)/cf_description/urdf/cf2.urdf.xacro" />
-  <param name="cf3" command="$(find xacro)/xacro --inorder $(find multi_uav_simulator)/cf_description/urdf/cf3.urdf.xacro" />
-  <param name="cf4" command="$(find xacro)/xacro --inorder $(find multi_uav_simulator)/cf_description/urdf/cf4.urdf.xacro" />
-  <param name="cf5" command="$(find xacro)/xacro --inorder $(find multi_uav_simulator)/cf_description/urdf/cf5.urdf.xacro" />
+<!-- add a new line for each new drone with the incremental robot_id. -->
+  <param name="cf1" command="$(find xacro)/xacro --inorder $(find multi_uav_simulator)/cf_description/crazyflie.urdf.xacro robot_id:=1" />
+  <param name="cf2" command="$(find xacro)/xacro --inorder $(find multi_uav_simulator)/cf_description/crazyflie.urdf.xacro robot_id:=2" />
+  <param name="cf3" command="$(find xacro)/xacro --inorder $(find multi_uav_simulator)/cf_description/crazyflie.urdf.xacro robot_id:=3" />
+  <param name="cf4" command="$(find xacro)/xacro --inorder $(find multi_uav_simulator)/cf_description/crazyflie.urdf.xacro robot_id:=4" />
+  <param name="cf5" command="$(find xacro)/xacro --inorder $(find multi_uav_simulator)/cf_description/crazyflie.urdf.xacro robot_id:=5" />
 
   <!-- Vehicle Parameters -->
   <rosparam file="$(find multi_uav_simulator)/config/config.yaml"/>

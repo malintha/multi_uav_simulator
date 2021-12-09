@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="crazyflie">
+
+  <link name="base_link$(arg robot_id)">
+    <visual>
+      <origin xyz="0 0 0" rpy="4.71 0 0" />
+      <geometry>
+        <mesh filename="package://multi_uav_simulator/cf_description/crazyflie2.dae"/>
+      </geometry>
+    </visual>
+  </link>
+
+</robot>

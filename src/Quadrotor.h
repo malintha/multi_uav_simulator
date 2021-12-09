@@ -4,7 +4,6 @@
 #include <geo_controller/controllerImpl.h>
 #include <tf/transform_listener.h>
 #include <string>
-// #include "DesiredStateProvider.h"
 #include "DynamicsProvider.h"
 #include "tf/tf.h"
 #include <eigen3/Eigen/Dense>
