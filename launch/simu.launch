@@ -17,7 +17,8 @@
   <env name="ROSCONSOLE_CONFIG_FILE" value="$(find multi_uav_simulator)/config/custom_rosconsole.conf"/>
   <node name="multi_uav_simulator" pkg="multi_uav_simulator" type="multi_uav_simulator" output="screen"/>
   <node name="rviz" pkg="rviz" type="rviz" output="screen" args="-d $(find multi_uav_simulator)/config/simulation.rviz"/>
-  />
+  
+  
 
 </launch>
 
