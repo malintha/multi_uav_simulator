@@ -68,3 +68,6 @@ SwarmSim2 uses xacro to spawn new models into the simulation environment. Out of
 			omega: [0, 0, 0]
 
 	The rotation and omega stands for the initial rotation matrix (3x3) and the angular velocity (3x1) of the rigid body. Here, we initialize the drone up-side down. To make it right way up, change the rotation matrix to `[1, 0, 0, 0, 1, 0, 0, 0, 1]`.
+
+
+3) Finally, to visualize the newly added drone, add a robot_model visualization type to RViz. Change its description to corresponding param name of the newly added element in the launch file. i.e.: "`cf6`".
