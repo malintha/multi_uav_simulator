@@ -20,8 +20,7 @@ Create a new catkin workspace and use `wstool` to download the `multi_uav_simula
     mkdir catkin_ws
     wstool init src
     cd src/
-    wstool set --git multi_uav_simulator git@github.com:malintha/multi_uav_simulator.git -y
-    wstool update
+    git clone -b dev git@github.com:malintha/multi_uav_simulator.git 
     
 SwarmSim2 uses `ethz-asl/mav_trajectory_generation` package to generate trajectories for the robots. Use the`rosinstall/dependencies.rosinstall` file to download the required dependencies.
     
