@@ -25,7 +25,7 @@ mav_trajectory_generation::Trajectory Quadrotor::get_opt_traj(const opt_t &ps, c
     mav_trajectory_generation::PolynomialOptimization<8> opt(3);
     std::vector<double> segment_times;
     const double v_max = 2;
-    const double a_max = 2;
+    const double a_max = 1;
     segment_times = estimateSegmentTimes(vertices, v_max, a_max);
     opt.setupFromVertices(vertices, segment_times, derivative_to_optimize);
     opt.solveLinear();
@@ -112,10 +112,10 @@ void Quadrotor::initPaths() {
     g.color.r = 1;
     g.color.g = 0;
     g.color.b = 0;
-    g.color.a = 1;
-    g.scale.x = 0.05;
-    g.scale.y = 0.05;
-    g.scale.z = 0.05;
+    g.color.a = 0.5;
+    g.scale.x = 0.1;
+    g.scale.y = 0.1;
+    g.scale.z = 0.1;
 
 }
 
