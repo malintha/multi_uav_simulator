@@ -11,7 +11,7 @@
 mav_trajectory_generation::Trajectory Quadrotor::get_opt_traj(const opt_t &ps, const Vector3d& pe) {
     mav_trajectory_generation::Vertex::Vector vertices;
     mav_trajectory_generation::Vertex v_s(3), v_e(3);
-    const int derivative_to_optimize = mav_trajectory_generation::derivative_order::ACCELERATION;
+    const int derivative_to_optimize = mav_trajectory_generation::derivative_order::JERK;
 
     v_s.addConstraint(mav_trajectory_generation::derivative_order::POSITION, ps.position);
     v_s.addConstraint(mav_trajectory_generation::derivative_order::VELOCITY, ps.velocity);
@@ -26,8 +26,7 @@ mav_trajectory_generation::Trajectory Quadrotor::get_opt_traj(const opt_t &ps, c
     std::vector<double> segment_times;
     const double v_max = 2;
     const double a_max = 2;
-    // segment_times = estimateSegmentTimes(vertices, v_max, a_max);
-    segment_times.push_back(2);
+    segment_times = estimateSegmentTimes(vertices, v_max, a_max);
     opt.setupFromVertices(vertices, segment_times, derivative_to_optimize);
     opt.solveLinear();
     mav_trajectory_generation::Trajectory trajectory;

@@ -206,42 +206,42 @@ Visualization Manager:
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /base_link1/vel
+      Marker Topic: /base_link1/goal
       Name: Marker
       Namespaces:
-        {}
+        "": true
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /base_link2/vel
+      Marker Topic: /base_link2/goal
       Name: Marker
       Namespaces:
-        {}
+        "": true
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /base_link3/vel
+      Marker Topic: /base_link3/goal
       Name: Marker
       Namespaces:
-        {}
+        "": true
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /base_link4/vel
+      Marker Topic: /base_link4/goal
       Name: Marker
       Namespaces:
-        {}
+        "": true
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
       Enabled: true
-      Marker Topic: /base_link5/vel
+      Marker Topic: /base_link5/goal
       Name: Marker
       Namespaces:
-        {}
+        "": true
       Queue Size: 100
       Value: true
   Enabled: true
@@ -272,7 +272,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 8.872479438781738
+      Distance: 10
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -280,17 +280,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.4279715418815613
-        Y: -0.685158371925354
-        Z: 0.45935261249542236
-      Focal Shape Fixed Size: true
+        X: 0
+        Y: 0
+        Z: 0
+      Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.579796552658081
+      Pitch: 0.540398359298706
       Target Frame: <Fixed Frame>
-      Yaw: 2.317375421524048
+      Yaw: 1.0303980112075806
     Saved: ~
 Window Geometry:
   Displays:
@@ -309,4 +309,4 @@ Window Geometry:
     collapsed: false
   Width: 1267
   X: 334
-  Y: 50
+  Y: 0
