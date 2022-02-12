@@ -1,6 +1,7 @@
-# SwarmSim2: A Lightweight Multi-UAV Simulator 
+# Mavswarm: A Lightweight Multi-aerial vehicle Simulator 
 
-SwarmSim2 is a lightweight and fast multi drone simulator based on ROS (Robot Operating System). The dynamics of the drones are modeled using a set of ODEs and solved via GSL. The trajectory tracking is performed using the geometric tracking controller proposed in [2], and a standalone implementation of the same can be found at https://github.com/malintha/geo_controller/. Consider citing our work [1] if you find this code helpful for your publications.
+Mavswarm is a lightweight and fast Multi-aerial vehicle simulator based on ROS (Robot Operating System). It can handle upto 10 quadrotors on a single desktop with real-time physics simulation. Mavswarm also supports quadrotor control, trajectory optimization and receding horizon planning (RHP). Currently, the internal controller uses the geometric tracking controller (Lee's controller) [2] tuned for two different quadrotor models (a large quadrotor and a Crazyflie).
+Consider citing our work [1] if you find this code helpful for your publications. 
 
 Checkout the ``crazyflie`` branch for the tuned controller for the Crazyflie nano-drone.
 
@@ -20,9 +21,10 @@ Create a new catkin workspace and use `wstool` to download the `multi_uav_simula
     mkdir catkin_ws
     wstool init src
     cd src/
-    git clone -b dev git@github.com:malintha/multi_uav_simulator.git 
+    wstool set --git multi_uav_simulator git@github.com:malintha/multi_uav_simulator.git -y
+    wstool update
     
-SwarmSim2 uses `ethz-asl/mav_trajectory_generation` package to generate trajectories for the robots. Use the`rosinstall/dependencies.rosinstall` file to download the required dependencies.
+Mavswarm uses `ethz-asl/mav_trajectory_generation` package to generate trajectories for the robots. Use the`rosinstall/dependencies.rosinstall` file to download the required dependencies.
     
     wstool merge multi_uav_simulator/rosinstall/dependencies.rosinstall
     wstool update
@@ -43,7 +45,7 @@ This will open an Rviz window and show 5 drones flip from an upside-down initial
 
 **Publishing the Goal for a given drone**
 
-SwarmSim2 supports Receding Horizon Planning (RHP) and trajectory optimization out of the box. You can publish a new desired goal position using rostopics for any drone to see it navigating. To do so, open a new command window and publish the following message. 
+Mavswarm supports Receding Horizon Planning (RHP) and trajectory optimization out of the box. You can publish a new desired goal position using rostopics for any drone to see it navigating. To do so, open a new command window and publish the following message. 
 
     rostopic pub /robot_1/desired_state geometry_msgs/Point '{x: 4, y: -1, z: 3}'
     
@@ -51,7 +53,7 @@ Each drone listnes to its `desired_state` topic which uses the ROS standard `geo
 
 **Adding a new drone to the environment**
 
-SwarmSim2 uses xacro to spawn new models into the simulation environment. Out of the box, it has 5 drones in the environment. If you need to add a sixth drone, simply follow the steps below.
+Mavswarm uses xacro to spawn new models into the simulation environment. Out of the box, it has 5 drones in the environment. If you need to add a sixth drone, simply follow the steps below.
 
 1) In the `launch/simu.launch` file, add a new line with the corresponding drone id.  Make sure to change `<param name>` and the robot_id accordingly.  For example,
 
@@ -82,7 +84,7 @@ SwarmSim2 uses xacro to spawn new models into the simulation environment. Out of
 
 		<param  name="cf6"  command="$(find xacro)/xacro --inorder $(find multi_uav_simulator)/cf_description/crazyflie.urdf.xacro robot_id:=6" />
 
-**SwarmSim2 can support upto 8-10 drones on a single desktop computer  with real-time physics simulations.**
+**Mavswarm can support upto 8-10 drones on a single desktop computer with real-time physics simulations.**
 
 [1] Our work based on this controller:
 
@@ -95,7 +97,7 @@ SwarmSim2 uses xacro to spawn new models into the simulation environment. Out of
     organization={IEEE}
     }
 
-[2] Original paper on the geometric tracking controller:
+[2] Geometric tracking controller:
 
     @inproceedings{lee2010geometric,
     title={Geometric tracking control of a quadrotor UAV on SE (3)},
