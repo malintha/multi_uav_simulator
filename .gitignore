@@ -1,1 +1,4 @@
-# config/simulation.rviz
+/cmake-build-debug/
+config/simulation.rviz
+.gitignore
+.vscode

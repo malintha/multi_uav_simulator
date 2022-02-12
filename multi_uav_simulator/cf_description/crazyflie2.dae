@@ -7,7 +7,7 @@
 		</contributor>
 		<created>2016-04-29T11:06:01Z</created>
 		<modified>2016-04-29T11:06:01Z</modified>
-		<unit meter="0.005000" name="millimeter"/>
+		<unit meter="0.00500" name="millimeter"/>
 		<up_axis>Z_UP</up_axis>
 	</asset>
 <library_geometries>
