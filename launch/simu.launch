@@ -1,6 +1,6 @@
 <launch>
 <!-- set the number of drones you want to simulate -->
-  <param name="count" value="5"/>
+  <!-- <param name="count" value="3"/> -->
 
 <!-- add a new line for each new drone with the incremental robot_id. -->
   <param name="cf1" command="$(find xacro)/xacro --inorder $(find multi_uav_simulator)/cf_description/crazyflie.urdf.xacro robot_id:=1" />
@@ -16,6 +16,8 @@
 
   <env name="ROSCONSOLE_CONFIG_FILE" value="$(find multi_uav_simulator)/config/custom_rosconsole.conf"/>
   <!-- <node name="multi_uav_simulator" pkg="multi_uav_simulator" type="multi_uav_simulator" output="screen"/> -->
+
+  <node name="rviz" pkg="rviz" type="rviz" output="screen" args="-d $(find multi_uav_simulator)/config/simulation.rviz"/>
 
  <group ns="robot_1">
     <node name="drone" pkg="multi_uav_simulator" type="multi_uav_simulator" output="screen">
@@ -58,8 +60,6 @@
   </group>
 
 
-
-  <node name="rviz" pkg="rviz" type="rviz" output="screen" args="-d $(find multi_uav_simulator)/config/simulation.rviz"/>
   />
 
 </launch>
