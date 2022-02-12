@@ -94,7 +94,8 @@ void Quadrotor::initPaths() {
 
     goal_pub = nh.advertise<visualization_msgs::Marker>(
             ros::names::append(robot_link_name, "goal"), 10);
-
+    g.header.stamp = m.header.stamp = ros::Time::now();
+    g.header.frame_id = m.header.frame_id = worldframe;
     m.type = visualization_msgs::Marker::LINE_STRIP;
 
     m.action = visualization_msgs::Marker::ADD;
