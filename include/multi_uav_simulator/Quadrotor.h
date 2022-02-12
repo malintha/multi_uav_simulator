@@ -77,18 +77,16 @@ private:
     params_t params;
     init_vals_t init_vals;
 
-    ros::Publisher marker_pub, goal_pub, ctrl_pub, vel_pub, disk_pub;
-    visualization_msgs::Marker m, g, ctrl, vel, disk;
+    ros::Publisher marker_pub, goal_pub;
+    visualization_msgs::Marker m, g;
     std::vector<geometry_msgs::Point> points;
     ros::Subscriber desired_state_sub;
     ros::Publisher state_pub;
     vector<Vector3d> positions;
-    vector<Vector3d> velocities, accelerations;
 
     bool quad_initialized = false;
     Vector3d xd;
 
-    void publish_control();
     void do_rhp();
     void initPaths();
     void set_state_space();
@@ -97,7 +95,6 @@ private:
     void send_transform();
     void publish_path();
     void publish_state();
-    void write_to_file();
     static mav_trajectory_generation::Trajectory get_opt_traj(const opt_t &ps, const Vector3d& pe);
 };
 
