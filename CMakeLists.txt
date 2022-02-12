@@ -30,19 +30,17 @@ catkin_package(
 )
 
 include_directories(
+        include/${PROJECT_NAME}
         ${catkin_INCLUDE_DIRS}
         ${geo_controller_INCLUDE_DIRS}
         ${simulator_utils_INCLUDE_DIRS}
 )
 
 add_executable(multi_uav_simulator
-        src/cfSimUtils.h
         src/DynamicsProvider.cpp
-        src/DynamicsProvider.h
         src/cfSimUtils.cpp
         src/Quadrotor.cpp
-        src/Quadrotor.h
-        src/Trajectory_t.h)
+        )
 
 target_link_libraries(multi_uav_simulator
         GSL::gsl

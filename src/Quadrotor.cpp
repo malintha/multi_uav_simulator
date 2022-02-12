@@ -7,6 +7,7 @@
 #include <ros/console.h>
 #include "simulator_utils/simulator_utils.h"
 
+
 mav_trajectory_generation::Trajectory Quadrotor::get_opt_traj(const opt_t &ps, const Vector3d& pe) {
     mav_trajectory_generation::Vertex::Vector vertices;
     mav_trajectory_generation::Vertex v_s(3), v_e(3);
@@ -23,9 +24,10 @@ mav_trajectory_generation::Trajectory Quadrotor::get_opt_traj(const opt_t &ps, c
 
     mav_trajectory_generation::PolynomialOptimization<8> opt(3);
     std::vector<double> segment_times;
-    const double v_max = 0.5;
-    const double a_max = 0.5;
-    segment_times = estimateSegmentTimes(vertices, v_max, a_max);
+    const double v_max = 2;
+    const double a_max = 2;
+    // segment_times = estimateSegmentTimes(vertices, v_max, a_max);
+    segment_times.push_back(2);
     opt.setupFromVertices(vertices, segment_times, derivative_to_optimize);
     opt.solveLinear();
     mav_trajectory_generation::Trajectory trajectory;
@@ -39,6 +41,12 @@ Quadrotor::Quadrotor(int robot_id, double frequency, ros::NodeHandle &n)
     this->dt = 1/frequency;
     this->initialize(1 / frequency);
     this->u << 0,0,0;
+
+    while (marker_pub.getNumSubscribers() < 1) {
+        ROS_INFO("Waiting for subscriber");
+        ros::Duration(1).sleep();
+    }
+
 }
 
 bool Quadrotor::initialize(double dt_) {
@@ -53,7 +61,7 @@ bool Quadrotor::initialize(double dt_) {
         ROS_ERROR_STREAM("Could not load the drone initial values");
         return false;
     }
-
+    xd_it = 0;
     stringstream ss;
     ss << localframe << to_string(robot_id);
     robot_link_name = ss.str();
@@ -75,11 +83,12 @@ bool Quadrotor::initialize(double dt_) {
     ROS_DEBUG_STREAM("Drone initialized " << robot_id);
     ROS_INFO_STREAM("Desired state subscriber topic: " << "robot_"<<robot_id<<"/desired_state");
     ROS_INFO_STREAM("State publisher topic: " << "robot_"<<robot_id<<"/current_state");
-    while (marker_pub.getNumSubscribers() < 1) {
-        ROS_INFO_STREAM("Waiting for subscriber: "<<robot_id);
-        ros::Duration(1).sleep();
-    }
-
+    // wait for rviz
+    // while (ctrl_pub.getNumSubscribers() < 1) {
+    //     ROS_INFO_STREAM("Waiting for subscriber: "<<robot_id);
+    //     ros::Duration(1).sleep();
+    // }
+    this->set_init_target = false;
     return true;
 }
 
@@ -90,17 +99,29 @@ void Quadrotor::initPaths() {
     goal_pub = nh.advertise<visualization_msgs::Marker>(
             ros::names::append(robot_link_name, "goal"), 10);
 
-    g.header.stamp = m.header.stamp = ros::Time::now();
+    ctrl_pub = nh.advertise<visualization_msgs::Marker>(
+            ros::names::append(robot_link_name, "control"), 10);
+
+    vel_pub = nh.advertise<visualization_msgs::Marker>(
+            ros::names::append(robot_link_name, "vel"), 10);
+
+    disk_pub = nh.advertise<visualization_msgs::Marker>(
+            ros::names::append(robot_link_name, "disk"), 10);
+
+    g.header.stamp = m.header.stamp = ctrl.header.stamp
+           = disk.header.stamp = vel.header.stamp = ros::Time::now();
     m.type = visualization_msgs::Marker::LINE_STRIP;
-    g.header.frame_id = m.header.frame_id = worldframe;
+    g.header.frame_id = m.header.frame_id = ctrl.header.frame_id
+           = disk.header.frame_id = vel.header.frame_id = worldframe;
     m.action = visualization_msgs::Marker::ADD;
     m.id = this->robot_id;
-    m.color.r = 0;
-    m.color.g = 1;
-    m.color.b = 0;
+    m.color.r = 1;
+    m.color.g = 0.0;
+    m.color.b = 0.0;
     m.color.a = 1;
-    m.scale.x = 0.02;
+    m.scale.x = 0.05;
     m.pose.orientation.w = 1.0;
+
     g.id = this->robot_id + 20;
     g.type = visualization_msgs::Marker::CUBE;
     g.action = visualization_msgs::Marker::ADD;
@@ -108,9 +129,42 @@ void Quadrotor::initPaths() {
     g.color.g = 0;
     g.color.b = 0;
     g.color.a = 1;
-    g.scale.x = 0.1;
-    g.scale.y = 0.1;
-    g.scale.z = 0.1;
+    g.scale.x = 0.05;
+    g.scale.y = 0.05;
+    g.scale.z = 0.05;
+
+    ctrl.id = this->robot_id+30;
+    ctrl.type = visualization_msgs::Marker::ARROW;
+    ctrl.action = visualization_msgs::Marker::ADD;
+    ctrl.color.r = 0;
+    ctrl.color.g = 0;
+    ctrl.color.b = 0;
+    ctrl.color.a = 1;
+    ctrl.scale.x = 0.05;
+    ctrl.scale.y = 0.05;
+    ctrl.pose.orientation.w = 1.0;
+
+    vel.id = this->robot_id+40;
+    vel.type = visualization_msgs::Marker::ARROW;
+    vel.action = visualization_msgs::Marker::ADD;
+    vel.color.r = 0;
+    vel.color.g = 1;
+    vel.color.b = 1;
+    vel.color.a = 1;
+    vel.scale.x = 0.05;
+    vel.scale.y = 0.05;
+    vel.pose.orientation.w = 1.0;
+
+    disk.id = this->robot_id + 50;
+    disk.type = visualization_msgs::Marker::CYLINDER;
+    disk.action = visualization_msgs::Marker::ADD;
+    disk.color.r = 0.9;
+    disk.color.g = 0.9;
+    disk.color.b = 0.9;
+    disk.color.a = 1;
+    disk.scale.x = 0.1;
+    disk.scale.y = 0.1;
+    disk.scale.z = 0.05;
 
 }
 
@@ -151,7 +205,8 @@ void Quadrotor::send_transform() {
     tf::Quaternion q;
     q.setRPY(rpy[0], rpy[1], rpy[2]);
     transform.setRotation(q);
-    br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), worldframe, robot_link_name));
+    if(quad_initialized && !isnan(q.x()))
+        br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), worldframe, robot_link_name));
 }
 
 State Quadrotor::getState() {
@@ -199,15 +254,48 @@ bool Quadrotor::load_init_vals() {
     init_vals.R = Matrix3d(R.data());
     init_vals.omega = Vector3d(omega.data());
 
+    this->x0.position = simulator_utils::ned_nwu_rotation(init_vals.position);
+    this->x0.velocity = simulator_utils::ned_nwu_rotation(init_vals.velocity);
+
+    this->xd0.position = this->x0.position;
+
     this->target_pos = simulator_utils::ned_nwu_rotation(init_vals.position);
     ROS_DEBUG_STREAM("Loaded the drone initialization values");
     return true;
 }
 
+// void Quadrotor::write_to_file() {
+//     std::ofstream out_pos, out_vel, out_acc;
+//     stringstream ss_p, ss_v, ss_a;
+//     ss_p << "/home/malintha/mrf_ws/src/multi_uav_simulator/data/"<<robot_id<<"_pos.txt";
+//     ss_v << "/home/malintha/mrf_ws/src/multi_uav_simulator/data/"<<robot_id<<"_vel.txt";
+//     ss_a << "/home/malintha/mrf_ws/src/multi_uav_simulator/data/"<<robot_id<<"_acc.txt";
+
+//     out_pos.open(ss_p.str(), std::ios_base::app);
+//     out_vel.open(ss_v.str(), std::ios_base::app);
+//     out_acc.open(ss_a.str(), std::ios_base::app);
+// //    if (!out_pos)
+// //        std::cerr << "Cannot open \"file\"!" << std::endl;
+
+//     for (int i = 0; i < positions.size(); i++) {
+//         out_pos << std::endl << positions[i][0] << " " << positions[i][1] << " " << 1;
+//     }
+//     for (int i = 0; i < velocities.size(); i++) {
+//         out_vel << std::endl << velocities[i][0] << " " << velocities[i][1] << " " << 0;
+//     }
+//     for (int i = 0; i < accelerations.size(); i++) {
+//         out_acc << std::endl << accelerations[i][0] << " " << accelerations[i][1] << " " << 0;
+//     }
+
+//     out_pos.close();
+//     out_vel.close();
+//     out_acc.close();
+
+// }
 void Quadrotor::desired_pos_cb(const geometry_msgs::Point &pt) {
     Vector3d p1 = {pt.x, pt.y, pt.z};
     Vector3d p2 = target_pos;
-    if((p2 - p1).norm() >= 0.25) {
+    if((p2 - p1).norm() >= 0.5) {
         if(!set_init_target) {
             set_init_target = true;
             // set init trajectory
@@ -227,32 +315,10 @@ void Quadrotor::desired_pos_cb(const geometry_msgs::Point &pt) {
     }
 }
 
-// xd should be in NED frame and so does dynamics and controller.
-void Quadrotor::iteration(const ros::TimerEvent &e) {
-    // compute the next desired state using incoming control signal and current state
-    Vector3d b1d(1, 0, 0);
-    Vector3d xd;
-    xd << simulator_utils::ned_nwu_rotation(init_vals.position);
-    if(this->set_init_target) {
-        if(set_next_target) {
-            do_rhp();
-        }
-        xd = traj.evaluate(tau, mav_trajectory_generation::derivative_order::POSITION);
-
-        if(abs(tau - traj.getMaxTime()) >= dt) {
-            tau = tau + dt;
-        }
-    }
-    // get desired state from topic
-    desired_state_t dss = {xd, b1d};
-    this->move(dss);
-    this->publish_path();
-    this->publish_state();
-}
 // if there is another target available, calculate a new trajectory
 // if the current tau is larger than T and there is another trajectory, switch to it
 void Quadrotor::do_rhp() {
-    double T = 0.25;
+    double T = 0.5;
     if (tau >= T || abs(tau - traj.getMaxTime()) < 1e-2) {
         Vector3d pt = {target_next.x, target_next.y, target_next.z};
         Vector3d ps = traj.evaluate(tau, mav_trajectory_generation::derivative_order::POSITION);
@@ -270,28 +336,122 @@ void Quadrotor::do_rhp() {
     };
 }
 
+// xd should be in NED frame and so does dynamics and controller.
+void Quadrotor::iteration(const ros::TimerEvent &e) {
+    // compute the next desired state using incoming control signal and current state
+    Vector3d b1d(1, 0, 0);
+    Vector3d xd;
+    // float interval = dt;
+    // use traj optimization to navigate to the desired state
+     xd << simulator_utils::ned_nwu_rotation(init_vals.position);
+    if(this->set_init_target) {
+        if(set_next_target) {
+            do_rhp();
+        }
+        // ROS_DEBUG_STREAM(traj.getMaxTime()<<" max time "<<tau);
+        xd = traj.evaluate(tau, mav_trajectory_generation::derivative_order::POSITION);
+
+        if(abs(tau - traj.getMaxTime()) >= dt) {
+            tau = tau + dt;
+        }
+    }
+
+    desired_state_t dss = {xd, b1d};
+    this->move(dss);
+    this->publish_path();
+    this->publish_state();
+    // this->positions.push_back(xd);
+    // this->velocities.push_back(vd);
+    // this->accelerations.push_back(u);
+    // tau = tau + dt;
+
+}
+
 void Quadrotor::publish_path() {
+    constexpr int arrowLength = 0.05;
     Vector3d x = this->dynamics->get_state().position;
     x[1] = -x[1];
     geometry_msgs::Point p;
-    p.x = x[0];
-    p.y = x[1];
-    p.z = x[2];
+    if(!isnan(x[0]) && !isnan(x[1])) {
+        p.x = x[0];
+        p.y = x[1];
+        p.z = x[2];
+        quad_initialized = true;
+    }
+    else
+    {
+        p.x = 0;
+        p.y = 0;
+        p.z = 0;
+    }
+    
+    // m.points.clear();
+
     m.points.push_back(p);
 
-    if (m.points.size() > 500)
+    // for(int i=0; i<length; i++) {
+    //     std_msgs::ColorRGBA c;
+    //     c.r = 1.0;
+    //     if(length > 0) {
+    //         c.a = i/length;
+    //     }
+    //     else {
+    //         c.a = 1;
+    //     }
+    //     m.colors.push_back(c);
+    //     m.points.push_back(p);
+    // }
+
+    if (m.points.size() > 2500)
         m.points.erase(m.points.begin());
 
     g.pose.position.x = this->target_pos[0];
     g.pose.position.y = -this->target_pos[1];
     g.pose.position.z = this->target_pos[2];
-
     g.pose.orientation.x = 0.0;
     g.pose.orientation.y = 0.0;
     g.pose.orientation.z = 0.0;
     g.pose.orientation.w = 1.0;
-    goal_pub.publish(g);
+
+    // control arrow start position
+    ctrl.points.clear();
+    ctrl.points.push_back(p);
+    // arrow end position. control input scaled and translated to start position
+    geometry_msgs::Point control;
+    control.x = (arrowLength*u[0] + p.x);
+    control.y = (-arrowLength*u[1] + p.y);
+    control.z = (arrowLength*u[2] + p.z);
+    ctrl.points.push_back(control);
+
+    // for velocity marker
+    Vector3d v = this->dynamics->get_state().velocity;
+    v[1] = -v[1];
+    geometry_msgs::Point vp;
+    vp.x = arrowLength*v[0] + p.x;
+    vp.y = arrowLength*v[1] + p.y;
+    vp.z = arrowLength*v[2] + p.z;
+
+    geometry_msgs::Pose pose;
+    pose.position.x = p.x;
+    pose.position.y = p.y;
+    pose.position.z = p.z; 
+    
+    pose.orientation.x = 0.0;
+    pose.orientation.y = 0.0;
+    pose.orientation.z = 0.0;
+    pose.orientation.w = 1.0;
+
+    this->disk.pose = pose;
+    // this->disk_pub.publish(disk);
+
+    vel.points.clear();
+    vel.points.push_back(p);
+    vel.points.push_back(vp);
+
+//    goal_pub.publish(g);
     marker_pub.publish(m);
+    // ctrl_pub.publish(ctrl);
+    // vel_pub.publish(vel);
 }
 
 void Quadrotor::run() {

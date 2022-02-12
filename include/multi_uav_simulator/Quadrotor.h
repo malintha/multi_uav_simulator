@@ -37,8 +37,11 @@ public:
     void move(const desired_state_t &d_state);
     void setState(State m_state);
     State getState();
-    bool initialize(double dt_);
+
+    bool initialize(double dt);
+
     void desired_pos_cb(const geometry_msgs::Point &pt);
+
     void iteration(const ros::TimerEvent &e);
     void run();
 
@@ -52,10 +55,14 @@ private:
     gains_t gains;
     double frequency;
     double dt;
-
+    std::vector<Eigen::Vector3d> traj_piece;
+    int xd_it;
     Vector3d u;
     double tau;
-    bool set_init_target = false;
+    state_space_t x0;
+    state_space_t xd0;
+
+    bool set_init_target;
     geometry_msgs::Point target_next;
     bool set_next_target = false;
     Vector3d target_pos;
@@ -70,11 +77,18 @@ private:
     params_t params;
     init_vals_t init_vals;
 
-    ros::Publisher marker_pub, goal_pub;
-    visualization_msgs::Marker m, g;
+    ros::Publisher marker_pub, goal_pub, ctrl_pub, vel_pub, disk_pub;
+    visualization_msgs::Marker m, g, ctrl, vel, disk;
+    std::vector<geometry_msgs::Point> points;
     ros::Subscriber desired_state_sub;
     ros::Publisher state_pub;
+    vector<Vector3d> positions;
+    vector<Vector3d> velocities, accelerations;
 
+    bool quad_initialized = false;
+    Vector3d xd;
+
+    void publish_control();
     void do_rhp();
     void initPaths();
     void set_state_space();
@@ -83,8 +97,8 @@ private:
     void send_transform();
     void publish_path();
     void publish_state();
+    void write_to_file();
     static mav_trajectory_generation::Trajectory get_opt_traj(const opt_t &ps, const Vector3d& pe);
-
 };
 
 #endif
