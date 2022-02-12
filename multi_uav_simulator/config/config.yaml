@@ -9,6 +9,8 @@ uav:
   gravity: 9.81
 
 # define the initial positions of each robot in NWU frame
+# change the initial rotation matrix to [1, 0, 0, 0, 1, 0, 0, 0, 1] for initialing the 
+# drones right side up.
 robot_1:
   position: [2, 2, -2]
   velocity: [0, 0, 0]

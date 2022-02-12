@@ -7,7 +7,6 @@
 
 #include <eigen3/Eigen/Dense>
 #include "tf/tf.h"
-#include "cfSimUtils.h"
 #include "simulator_utils/simulator_utils.h"
 #include <gsl/gsl_odeiv2.h>
 

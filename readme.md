@@ -38,6 +38,7 @@ Now build the simulator.
     source devel/setup.bash
     roslaunch multi_uav_simulator simu.launch
 
+
 This will open an Rviz window and show 5 drones flip from an upside-down initialization.
 
 **Publishing the Goal for a given drone**
@@ -74,10 +75,12 @@ SwarmSim2 uses xacro to spawn new models into the simulation environment. Out of
             rotation: [1, 0, 0, 0, -0.9995, -0.0314, 0, 0.0314, -0.9995]
             omega: [0, 0, 0]
 
-    The rotation and omega stands for the initial rotation matrix (3x3) and the angular velocity (3x1) of the rigid body. Here, we initialize the drone up-side down. To make it right way up, change the rotation matrix to `[1, 0, 0, 0, 1, 0, 0, 0, 1]`.
+    The rotation and omega stands for the initial rotation matrix (3x3) and the angular velocity (3x1) of the rigid body. Here, we initialize the drone up-side down. To make it right way up, change the rotation matrix to identity: `[1, 0, 0, 0, 1, 0, 0, 0, 1]`.
 
 
 4) Finally, to visualize the newly added drone, add a robot_model visualization type to RViz. Change its description to corresponding param name of the newly added element in the launch file. i.e.: "`cf6`".
+
+		<param  name="cf6"  command="$(find xacro)/xacro --inorder $(find multi_uav_simulator)/cf_description/crazyflie.urdf.xacro robot_id:=6" />
 
 **SwarmSim2 can support upto 8-10 drones on a single desktop computer  with real-time physics simulations.**
 
@@ -102,4 +105,3 @@ SwarmSim2 uses xacro to spawn new models into the simulation environment. Out of
     year={2010},
     organization={IEEE}
     }
-    
