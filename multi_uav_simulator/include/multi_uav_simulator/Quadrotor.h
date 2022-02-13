@@ -48,44 +48,38 @@ public:
 private:
 
     State m_state;
-    double sim_time;
+    double sim_time, tau, dt, frequency;
     int robot_id;
-    std::string worldframe;
-    string localframe;
+    std::string worldframe, localframe, robot_link_name;
     gains_t gains;
-    double frequency;
-    double dt;
     std::vector<Eigen::Vector3d> traj_piece;
     int xd_it;
-    Vector3d u;
-    double tau;
-    state_space_t x0;
-    state_space_t xd0;
+    Vector3d u, target_pos;
+    state_space_t x0, xd0;
 
     bool set_init_target;
     geometry_msgs::Point target_next;
     bool set_next_target = false;
-    Vector3d target_pos;
+    // Vector3d ;
     mav_trajectory_generation::Trajectory traj;
-    mav_trajectory_generation::Trajectory traj_temp;
+    // mav_trajectory_generation::Trajectory traj_temp;
 
     ControllerImpl *controller;
     state_space_t state_space;
     ros::NodeHandle nh;
-    string robot_link_name;
+
     DynamicsProvider *dynamics;
     params_t params;
     init_vals_t init_vals;
 
-    ros::Publisher marker_pub, goal_pub;
+    ros::Publisher marker_pub, goal_pub, state_pub;
     visualization_msgs::Marker m, g;
     std::vector<geometry_msgs::Point> points;
     ros::Subscriber desired_state_sub;
-    ros::Publisher state_pub;
     vector<Vector3d> positions;
 
     bool quad_initialized = false;
-    Vector3d xd;
+    // Vector3d xd;
 
     void do_rhp();
     void initPaths();

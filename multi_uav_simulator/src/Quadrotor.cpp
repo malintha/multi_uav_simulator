@@ -19,14 +19,20 @@ mav_trajectory_generation::Trajectory Quadrotor::get_opt_traj(const opt_t &ps, c
     v_s.addConstraint(mav_trajectory_generation::derivative_order::JERK, ps.jerk);
 
     v_e.makeStartOrEnd(pe, mav_trajectory_generation::derivative_order::POSITION);
+    // v_s.addConstraint(mav_trajectory_generation::derivative_order::VELOCITY, Vector3d(0,0,0));
+    // v_s.addConstraint(mav_trajectory_generation::derivative_order::ACCELERATION, Vector3d(0,0,0));
+    // v_s.addConstraint(mav_trajectory_generation::derivative_order::JERK, Vector3d(0,0,0));
+
     vertices.push_back(v_s);
     vertices.push_back(v_e);
 
     mav_trajectory_generation::PolynomialOptimization<8> opt(3);
     std::vector<double> segment_times;
-    const double v_max = 2;
-    const double a_max = 1;
+    const double v_max = 1;
+    const double a_max = 2;
     segment_times = estimateSegmentTimes(vertices, v_max, a_max);
+    // segment_times.push_back(4);
+    ROS_DEBUG_STREAM("segement times: "<<segment_times[0]);
     opt.setupFromVertices(vertices, segment_times, derivative_to_optimize);
     opt.solveLinear();
     mav_trajectory_generation::Trajectory trajectory;
@@ -60,7 +66,7 @@ bool Quadrotor::initialize(double dt_) {
         ROS_ERROR_STREAM("Could not load the drone initial values");
         return false;
     }
-    xd_it = 0;
+    // xd_it = 0;
     stringstream ss;
     ss << localframe << to_string(robot_id);
     robot_link_name = ss.str();
@@ -216,7 +222,7 @@ bool Quadrotor::load_init_vals() {
 void Quadrotor::desired_pos_cb(const geometry_msgs::Point &pt) {
     Vector3d p1 = {pt.x, pt.y, pt.z};
     Vector3d p2 = target_pos;
-    if((p2 - p1).norm() >= 0.5) {
+    if((p2 - p1).norm() >= 0.2) {
         if(!set_init_target) {
             set_init_target = true;
             // set init trajectory
@@ -237,20 +243,21 @@ void Quadrotor::desired_pos_cb(const geometry_msgs::Point &pt) {
 }
 
 // if there is another target available, calculate a new trajectory
-// if the current tau is larger than T and there is another trajectory, switch to it
 void Quadrotor::do_rhp() {
-    double T = 0.5;
-    if (tau >= T || abs(tau - traj.getMaxTime()) < 1e-2) {
-        Vector3d pt = {target_next.x, target_next.y, target_next.z};
-        Vector3d ps = traj.evaluate(tau, mav_trajectory_generation::derivative_order::POSITION);
-        Vector3d vel = traj.evaluate(tau, mav_trajectory_generation::derivative_order::VELOCITY);
-        Vector3d acc = traj.evaluate(tau, mav_trajectory_generation::derivative_order::ACCELERATION);
-        Vector3d jerk = traj.evaluate(tau, mav_trajectory_generation::derivative_order::JERK);
-        opt_t wp = {ps, vel, acc, jerk};
 
-        mav_trajectory_generation::Trajectory tr_temp = get_opt_traj(wp, pt);
-        this->traj = tr_temp;
-        ROS_DEBUG_STREAM(robot_id << " Set new traj. Tau: "<<tau);
+    if (set_next_target) {
+        Vector3d pt = {target_next.x, target_next.y, target_next.z};
+        Vector3d ps, vel(0,0,0), acc(0,0,0);
+        // changing to a new trajectory midway
+        ROS_DEBUG_STREAM("calculating a new trajectory");
+        ps = this->dynamics->get_state().position;
+        vel = this->dynamics->get_state().velocity;
+        acc = this->dynamics->get_state().acceleration;
+
+        opt_t wp = {ps, vel, acc};
+
+        this->traj = get_opt_traj(wp, pt);
+        ROS_DEBUG_STREAM("Setting a new trajectory of length: "<<traj.getMaxTime() << "for drone: "<<robot_id);
 
         this->set_next_target = false;
         tau = 0;
@@ -261,15 +268,13 @@ void Quadrotor::do_rhp() {
 void Quadrotor::iteration(const ros::TimerEvent &e) {
     // compute the next desired state using incoming control signal and current state
     Vector3d b1d(1, 0, 0);
-    Vector3d xd;
-    // float interval = dt;
+    Vector3d xd = simulator_utils::ned_nwu_rotation(init_vals.position);
+
     // use traj optimization to navigate to the desired state
-     xd << simulator_utils::ned_nwu_rotation(init_vals.position);
     if(this->set_init_target) {
         if(set_next_target) {
             do_rhp();
         }
-        // ROS_DEBUG_STREAM(traj.getMaxTime()<<" max time "<<tau);
         xd = traj.evaluate(tau, mav_trajectory_generation::derivative_order::POSITION);
 
         if(abs(tau - traj.getMaxTime()) >= dt) {
