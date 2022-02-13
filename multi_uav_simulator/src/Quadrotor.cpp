@@ -7,7 +7,6 @@
 #include <ros/console.h>
 #include "simulator_utils/simulator_utils.h"
 
-
 mav_trajectory_generation::Trajectory Quadrotor::get_opt_traj(const opt_t &ps, const Vector3d& pe) {
     mav_trajectory_generation::Vertex::Vector vertices;
     mav_trajectory_generation::Vertex v_s(3), v_e(3);
@@ -16,12 +15,8 @@ mav_trajectory_generation::Trajectory Quadrotor::get_opt_traj(const opt_t &ps, c
     v_s.addConstraint(mav_trajectory_generation::derivative_order::POSITION, ps.position);
     v_s.addConstraint(mav_trajectory_generation::derivative_order::VELOCITY, ps.velocity);
     v_s.addConstraint(mav_trajectory_generation::derivative_order::ACCELERATION, ps.acceleration);
-    v_s.addConstraint(mav_trajectory_generation::derivative_order::JERK, ps.jerk);
 
-    v_e.makeStartOrEnd(pe, mav_trajectory_generation::derivative_order::POSITION);
-    // v_s.addConstraint(mav_trajectory_generation::derivative_order::VELOCITY, Vector3d(0,0,0));
-    // v_s.addConstraint(mav_trajectory_generation::derivative_order::ACCELERATION, Vector3d(0,0,0));
-    // v_s.addConstraint(mav_trajectory_generation::derivative_order::JERK, Vector3d(0,0,0));
+    v_e.makeStartOrEnd(pe, derivative_to_optimize);
 
     vertices.push_back(v_s);
     vertices.push_back(v_e);
@@ -29,9 +24,8 @@ mav_trajectory_generation::Trajectory Quadrotor::get_opt_traj(const opt_t &ps, c
     mav_trajectory_generation::PolynomialOptimization<8> opt(3);
     std::vector<double> segment_times;
     const double v_max = 1;
-    const double a_max = 2;
+    const double a_max = 4;
     segment_times = estimateSegmentTimes(vertices, v_max, a_max);
-    // segment_times.push_back(4);
     ROS_DEBUG_STREAM("segement times: "<<segment_times[0]);
     opt.setupFromVertices(vertices, segment_times, derivative_to_optimize);
     opt.solveLinear();
@@ -51,7 +45,6 @@ Quadrotor::Quadrotor(int robot_id, double frequency, ros::NodeHandle &n)
         ROS_INFO("Waiting for subscriber");
         ros::Duration(1).sleep();
     }
-
 }
 
 bool Quadrotor::initialize(double dt_) {
@@ -66,7 +59,7 @@ bool Quadrotor::initialize(double dt_) {
         ROS_ERROR_STREAM("Could not load the drone initial values");
         return false;
     }
-    // xd_it = 0;
+
     stringstream ss;
     ss << localframe << to_string(robot_id);
     robot_link_name = ss.str();
