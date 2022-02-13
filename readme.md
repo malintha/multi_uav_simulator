@@ -53,13 +53,13 @@ Each drone listnes to its `desired_state` topic which uses the ROS standard `geo
 
 **Adding a new drone to the environment**
 
-Mavswarm uses xacro to spawn new models into the simulation environment. Out of the box, it has 5 drones in the environment. If you need to add a sixth drone, simply follow the steps below.
+Mavswarm uses xacro to spawn new models into the simulation environment. Out of the box, it has 5 drones in the environment. If you want to add a sixth drone, simply follow the steps below.
 
 1) In the `launch/simu.launch` file, add a new line with the corresponding drone id.  Make sure to change `<param name>` and the robot_id accordingly.  For example,
 
         <param  name="cf6"  command="$(find xacro)/xacro --inorder $(find multi_uav_simulator)/cf_description/crazyflie.urdf.xacro robot_id:=6" />
 
-2) Now add the following block to bind a quadrotor instance to the drone model. Here we pass the robot_id and the internal controller's frequency as arguments to the quadrotor instance.
+2) Now add the following block to bind a quadrotor instance to the drone model. Here we pass the `robot_id` and the internal controller's frequency as arguments to the quadrotor instance.
 
         <group ns="robot_6">
             <node name="drone" pkg="multi_uav_simulator" type="multi_uav_simulator" output="screen" args="6 $(arg controller_frequency)">
@@ -79,8 +79,6 @@ Mavswarm uses xacro to spawn new models into the simulation environment. Out of 
 
 
 4) Finally, to visualize the newly added drone, add a robot_model visualization type to RViz. Change its description to corresponding param name of the newly added element in the launch file. i.e.: "`cf6`".
-
-		<param  name="cf6"  command="$(find xacro)/xacro --inorder $(find multi_uav_simulator)/cf_description/crazyflie.urdf.xacro robot_id:=6" />
 
 [1] Our work based on this controller:
 
