@@ -1,4 +1,4 @@
-# Mavswarm: A Lightweight Multi-aerial vehicle Simulator 
+# Mavswarm: A lightweight Multi-aerial vehicle Simulator 
 
 Mavswarm is a lightweight and fast Multi-aerial vehicle simulator based on ROS (Robot Operating System). It can handle upto 10 quadrotors on a single desktop with real-time physics simulation. Mavswarm also supports quadrotor control, trajectory optimization and receding horizon planning (RHP). Currently, the internal controller uses the geometric tracking controller (Lee's controller) [2] tuned for two different quadrotor models (a large quadrotor and a Crazyflie).
 Consider citing our work [1] if you find this code helpful for your publications. 
@@ -59,12 +59,10 @@ Mavswarm uses xacro to spawn new models into the simulation environment. Out of 
 
         <param  name="cf6"  command="$(find xacro)/xacro --inorder $(find multi_uav_simulator)/cf_description/crazyflie.urdf.xacro robot_id:=6" />
 
-2) Now add the following block to bind a quadrotor instance to the drone model. 
+2) Now add the following block to bind a quadrotor instance to the drone model. Here we pass the robot_id and the internal controller's frequency as arguments to the quadrotor instance.
 
         <group ns="robot_6">
-            <node name="drone" pkg="multi_uav_simulator" type="multi_uav_simulator" output="screen">
-              <param name="robot_id" value="1"/>
-              <param name="frame/prefix" value="/base_link"/>
+            <node name="drone" pkg="multi_uav_simulator" type="multi_uav_simulator" output="screen" args="6 $(arg controller_frequency)">
               <remap from="robot_6/drone" to="drone"/>
             </node>
           </group>
@@ -83,8 +81,6 @@ Mavswarm uses xacro to spawn new models into the simulation environment. Out of 
 4) Finally, to visualize the newly added drone, add a robot_model visualization type to RViz. Change its description to corresponding param name of the newly added element in the launch file. i.e.: "`cf6`".
 
 		<param  name="cf6"  command="$(find xacro)/xacro --inorder $(find multi_uav_simulator)/cf_description/crazyflie.urdf.xacro robot_id:=6" />
-
-**Mavswarm can support upto 8-10 drones on a single desktop computer with real-time physics simulations.**
 
 [1] Our work based on this controller:
 
