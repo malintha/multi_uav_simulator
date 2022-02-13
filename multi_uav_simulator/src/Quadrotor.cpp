@@ -199,7 +199,7 @@ bool Quadrotor::load_init_vals() {
     if (!nh.getParam(ros::names::append(robot_name, "rotation"), R)) return false;
     if (!nh.getParam(ros::names::append(robot_name, "omega"), omega)) return false;
     if (!nh.getParam("/frame/fixed", worldframe)) return false;
-    if (!nh.getParam("drone/frame/prefix", localframe)) return false;
+    if (!nh.getParam("/frame/prefix", localframe)) return false;
     init_vals.position = Vector3d(position.data());
     init_vals.velocity = Vector3d(vel.data());
     init_vals.R = Matrix3d(R.data());
@@ -341,12 +341,13 @@ void Quadrotor::publish_state() {
 int main(int argc, char **argv) {
     ros::init(argc, argv, "~");
     ros::NodeHandle n;
-    int robot_id;
-    n.getParam("drone/robot_id", robot_id);
+    int robot_id = std::atoi(argv[1]);
+    double frequency = (double)std::atof(argv[2]);
+
+    // n.getParam("drone/robot_id", robot_id);
 
     ROS_DEBUG_STREAM("initializing : " << robot_id << endl);
     stringstream ss;
-    double frequency = 100;
 
     Quadrotor quad(robot_id, frequency, n);
     quad.run();
