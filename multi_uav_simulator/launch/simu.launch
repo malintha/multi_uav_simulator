@@ -1,8 +1,8 @@
 <launch>
 
 <!-- add a new line for each new drone with the incremental robot_id. -->
-  <param name="cf1" command="$(find xacro)/xacro $(find multi_uav_simulator)/cf_description/crazyflie.urdf.xacro robot_id:=1" />
-  <param name="cf2" command="$(find xacro)/xacro $(find multi_uav_simulator)/cf_description/crazyflie.urdf.xacro robot_id:=2" />
+  <param name="cf1" command="$(find xacro)/xacro $(find multi_uav_simulator)/hector_description/hector.urdf.xacro robot_id:=1" />
+  <param name="cf2" command="$(find xacro)/xacro $(find multi_uav_simulator)/hector_description/hector.urdf.xacro robot_id:=2" />
   <param name="cf3" command="$(find xacro)/xacro $(find multi_uav_simulator)/cf_description/crazyflie.urdf.xacro robot_id:=3" />
   <param name="cf4" command="$(find xacro)/xacro $(find multi_uav_simulator)/cf_description/crazyflie.urdf.xacro robot_id:=4" />
   <param name="cf5" command="$(find xacro)/xacro $(find multi_uav_simulator)/cf_description/crazyflie.urdf.xacro robot_id:=5" />

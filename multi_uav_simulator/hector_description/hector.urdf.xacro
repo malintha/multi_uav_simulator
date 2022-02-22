@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="hector">
+
+    <link name="base_link$(arg robot_id)">
+      <visual>
+        <origin xyz="0 0 0" rpy="3.142 0 0" />
+        <geometry>
+          <mesh filename="package://multi_uav_simulator/hector_description/hector.dae"/>
+        </geometry>
+      </visual>
+
+    </link>
+</robot>
