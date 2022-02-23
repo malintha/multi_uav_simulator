@@ -54,7 +54,7 @@ Each drone listnes to its `desired_state` topic which uses the ROS standard `geo
 
 **Adding a new drone to the environment**
 
-Mavswarm uses xacro to spawn new models into the simulation environment. Out of the box, it has 5 drones in the environment and two separate quadrotor models to choose from; namely, Biqquad (the quadrotor model from [2]) and Crazyflie. If you want to add a sixth drone to the environment, simply follow the steps below.
+Mavswarm uses xacro to spawn new models into the simulation environment. Out of the box, it has 5 drones in the environment and two separate quadrotor models to choose from; namely, Bigquad (the quadrotor model from [2]) and Crazyflie. If you want to add a sixth drone to the environment, simply follow the steps below.
 
 1) In the `launch/simu.launch` file, add a new line with the corresponding drone id.  Make sure to change `<param name>` and the robot_id accordingly.  For example,
 
@@ -62,7 +62,7 @@ Mavswarm uses xacro to spawn new models into the simulation environment. Out of 
 
     This adds a new Crazyflie model to the environment. If you want a larger quadrotor model, you can use `bigquad_description/bigquad.urdf.xacro` instead. 
 
-2) Now add the following block to bind a quadrotor instance to the URDF model. Here we pass the `robot_id` and the internal controller's frequency as arguments to the quadrotor instance. In addition, we use `rosparam` to specify the quadrotor's model parameters and the controller gains. The parameters for the Biqquad and the Crazyflie are can be found in `config/bigquad_params.yaml` and `config/crazyflie_params.yaml` files respectively. 
+2) Now add the following block to bind a quadrotor instance to the URDF model. Here we pass the `robot_id` and the internal controller's frequency as arguments to the quadrotor instance. In addition, we use `rosparam` to specify the quadrotor's model parameters and the controller gains. The parameters for the Bigquad and the Crazyflie can be found in `config/bigquad_params.yaml` and `config/crazyflie_params.yaml` files respectively. 
 
         <group ns="robot_6">
             <node name="drone" pkg="multi_uav_simulator" type="multi_uav_simulator" output="screen" args="6 $(arg controller_frequency)">
