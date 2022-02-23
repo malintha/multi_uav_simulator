@@ -5,9 +5,12 @@ In addition you can extend the swarm simulation with more quadrotor models by si
 
 Consider citing our work [1] if you find this code helpful for your publications. 
 
-![Cover Image](https://raw.githubusercontent.com/Malintha/multi_uav_simulator/crazyflie/crazyflie_cover.png)
+| ![Cover Image](https://github.com/malintha/multi_uav_simulator/blob/master/cover.gif?raw=true) |
+|:--:| 
+| *A swarm of 5 hetergenous quadrotors stabilizing from an upside-down initialization* |
 
 **Install dependencies**
+
 Install [`Eigen`](http://eigen.tuxfamily.org/index.php?title=Main_Page), [`Armadillo`](https://www.uio.no/studier/emner/matnat/fys/FYS4411/v13/guides/installing-armadillo/) and [`GNU Science Library (GSL)`](https://www.gnu.org/software/gsl/) before you continue.
 
 Install eigen-coversions (make sure to change the ROS version name i.e.; melodic, kinetic).
