@@ -164,24 +164,26 @@ State Quadrotor::getState() {
 }
 
 bool Quadrotor::load_params() {
+    stringstream ss;
+    ss << "/robot_" << to_string(this->robot_id);
+    string robot_name = ss.str();
     double temp;
-    if (!nh.getParam("/uav/gravity", temp)) return false;
-    params.gravity = temp;
+    if (!nh.getParam(ros::names::append(robot_name, "drone/model/gravity"), params.gravity)) return false;
+    //  = temp;
     vector<double> J_;
-    if (!nh.getParam("/uav/J", J_)) return false;
-    Matrix3d J;
-    J <<    J_[0], 0, 0,
-            0, J_[1], 0,
-            0, 0, J_[2];
-    params.J = J;
-    params.J_inv = J.inverse();
-    if (!nh.getParam("/uav/m", temp)) return false;
-    params.mass = temp;
+    if (!nh.getParam(ros::names::append(robot_name, "drone/model/J"), J_)) return false;
+    // Matrix3d J;
+    params.J << J_[0], 0, 0,
+                0, J_[1], 0,
+                0, 0, J_[2];
+    params.J_inv = params.J.inverse();
+    if (!nh.getParam(ros::names::append(robot_name, "drone/model/m"), params.mass)) return false;
+    //  = temp;
     params.F = 0;
     Vector3d M(0, 0, 0);
     params.M = M;
     vector<double> gains_;
-    if (!nh.getParam("/controller/gains", gains_)) return false;
+    if (!nh.getParam(ros::names::append(robot_name, "drone/controller/gains"), gains_)) return false;
     this->gains = {gains_[0], gains_[1], gains_[2], gains_[3]};
 
     ROS_DEBUG_STREAM("Loaded control parameters");
@@ -337,16 +339,13 @@ void Quadrotor::publish_state() {
 }
 
 int main(int argc, char **argv) {
-    ros::init(argc, argv, "~");
-    ros::NodeHandle n;
+
     int robot_id = std::atoi(argv[1]);
     double frequency = (double)std::atof(argv[2]);
 
-    // n.getParam("drone/robot_id", robot_id);
-
     ROS_DEBUG_STREAM("initializing : " << robot_id << endl);
-    stringstream ss;
-
+    ros::init(argc, argv, "~");
+    ros::NodeHandle n;
     Quadrotor quad(robot_id, frequency, n);
     quad.run();
 

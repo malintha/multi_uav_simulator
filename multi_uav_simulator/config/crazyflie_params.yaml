@@ -1,0 +1,10 @@
+controller:
+  gains: [1, 0.5, 0.0015, 0.00075]
+
+# model parameters for crazyflie drone
+model:
+  J: [2.3951e-5, 2.3951e-5, 3.2347e-5]
+  m: 0.032
+  d: 0.08
+  ctf: 0.0037
+  gravity: 9.81

@@ -1,13 +1,3 @@
-controller:
-  gains: [17.36, 24.30, 8.81, 2.54]
-
-uav:
-  J: [0.0820, 0.0845, 0.1377]
-  m: 4.34
-  d: 0.315
-  ctf: 8.004e-4
-  gravity: 9.81
-
 # define the initial positions of each robot in NWU frame
 # change the initial rotation matrix to [1, 0, 0, 0, 1, 0, 0, 0, 1] for initialing the 
 # drones right side up.

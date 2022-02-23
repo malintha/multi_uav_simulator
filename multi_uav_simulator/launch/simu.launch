@@ -1,14 +1,18 @@
 <launch>
 
 <!-- add a new line for each new drone with the incremental robot_id. -->
-  <param name="cf1" command="$(find xacro)/xacro $(find multi_uav_simulator)/hector_description/hector.urdf.xacro robot_id:=1" />
-  <param name="cf2" command="$(find xacro)/xacro $(find multi_uav_simulator)/hector_description/hector.urdf.xacro robot_id:=2" />
-  <param name="cf3" command="$(find xacro)/xacro $(find multi_uav_simulator)/cf_description/crazyflie.urdf.xacro robot_id:=3" />
-  <param name="cf4" command="$(find xacro)/xacro $(find multi_uav_simulator)/cf_description/crazyflie.urdf.xacro robot_id:=4" />
-  <param name="cf5" command="$(find xacro)/xacro $(find multi_uav_simulator)/cf_description/crazyflie.urdf.xacro robot_id:=5" />
+  <!-- Use bigquad model for the first two instances -->
+  <param name="robot1" command="$(find xacro)/xacro $(find multi_uav_simulator)/bigquad_description/bigquad.urdf.xacro robot_id:=1" />
+  <param name="robot2" command="$(find xacro)/xacro $(find multi_uav_simulator)/bigquad_description/bigquad.urdf.xacro robot_id:=2" />
 
-  <!-- Vehicle Parameters -->
-  <rosparam file="$(find multi_uav_simulator)/config/config.yaml"/>
+  <!-- Use crazyflie model for the other three instances -->
+  <param name="robot3" command="$(find xacro)/xacro $(find multi_uav_simulator)/cf_description/crazyflie.urdf.xacro robot_id:=3" />
+  <param name="robot4" command="$(find xacro)/xacro $(find multi_uav_simulator)/cf_description/crazyflie.urdf.xacro robot_id:=4" />
+  <param name="robot5" command="$(find xacro)/xacro $(find multi_uav_simulator)/cf_description/crazyflie.urdf.xacro robot_id:=5" />
+
+  <!-- Initial Conditions for the robots -->
+  <rosparam file="$(find multi_uav_simulator)/config/initial_conditions.yaml"/>
+
   <param name="frame/prefix" value="/base_link"/>
   <param name="frame/fixed" value="map"/>
 
@@ -20,31 +24,31 @@
 
  <group ns="robot_1">
     <node name="drone" pkg="multi_uav_simulator" type="multi_uav_simulator" output="screen" args="1 $(arg controller_frequency)">
-      <remap from="robot_1/drone" to="drone"/>
+      <rosparam file="$(find multi_uav_simulator)/config/bigquad_params.yaml"/>
     </node>
   </group>
 
   <group ns="robot_2">
     <node name="drone" pkg="multi_uav_simulator" type="multi_uav_simulator" output="screen" args="2 $(arg controller_frequency)">
-      <remap from="robot_2/drone" to="drone"/>
+      <rosparam file="$(find multi_uav_simulator)/config/bigquad_params.yaml"/>
     </node>
   </group>
 
   <group ns="robot_3">
     <node name="drone" pkg="multi_uav_simulator" type="multi_uav_simulator" output="screen" args="3 $(arg controller_frequency)">
-      <remap from="robot_3/drone" to="drone"/>
+      <rosparam file="$(find multi_uav_simulator)/config/crazyflie_params.yaml"/>
     </node>
   </group>
 
     <group ns="robot_4">
     <node name="drone" pkg="multi_uav_simulator" type="multi_uav_simulator" output="screen" args="4 $(arg controller_frequency)">
-      <remap from="robot_4/drone" to="drone"/>
+      <rosparam file="$(find multi_uav_simulator)/config/crazyflie_params.yaml"/>
     </node>
   </group>
 
   <group ns="robot_5">
     <node name="drone" pkg="multi_uav_simulator" type="multi_uav_simulator" output="screen" args="5 $(arg controller_frequency)">
-      <remap from="robot_4/drone" to="drone"/>
+      <rosparam file="$(find multi_uav_simulator)/config/crazyflie_params.yaml"/>
     </node>
   </group>
 

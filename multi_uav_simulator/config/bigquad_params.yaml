@@ -1,0 +1,10 @@
+controller:
+  gains: [17.36, 24.30, 8.81, 2.54]
+
+# model parameters for bigquad drone
+model:
+  J: [0.0820, 0.0845, 0.1377]
+  m: 4.34
+  d: 0.315
+  ctf: 8.004e-4
+  gravity: 9.81
