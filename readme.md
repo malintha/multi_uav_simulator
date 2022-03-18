@@ -1,9 +1,9 @@
 # Mavswarm: A Lightweight Multi-Aerial Vehicle Simulator 
 
-Mavswarm is a lightweight and fast Multi-Aerial Vehicle simulator based on ROS (Robot Operating System). It supports simulating heterogenous quadrotor swarms of upto 10 robots on a single desktop with physics. Mavswarm also supports quadrotor control, trajectory optimization and receding horizon planning (RHP). Currently, the internal controller uses the Lee's geometric tracking controller [2] and it is tuned for two different quadrotor models out of the box. 
+Mavswarm is a lightweight and fast Multi-Aerial Vehicle simulator based on ROS (Robot Operating System). It supports simulating heterogenous quadrotor swarms of upto 10 robots on a single desktop with physics. Mavswarm also supports quadrotor control, trajectory optimization and receding horizon planning (RHP). Currently, the internal controller uses the Lee's geometric tracking controller [3] and it is tuned for two different quadrotor models out of the box. 
 In addition you can extend the swarm simulation with more quadrotor models by simply adding the new quadrotor model parameters through a yaml configuration file. 
 
-Consider citing our work [1] if you find this code helpful for your publications. 
+Consider citing our work [1][2] if you find this code helpful for your publications. 
 
 | ![Cover Image](https://github.com/malintha/multi_uav_simulator/blob/master/cover.gif?raw=true) |
 |:--:| 
@@ -97,7 +97,20 @@ Mavswarm uses xacro to spawn new models into the simulation environment. Out of 
     organization={IEEE}
     }
 
-[2] Geometric tracking controller:
+[2] Mean-Field flocking control of UAVs (Find the complete code at: https://github.com/malintha/mean_field_flocking):
+
+    @INPROCEEDINGS{9560899,
+    author={Fernando, Malintha},
+    booktitle={2021 IEEE International Conference on Robotics and Automation (ICRA)}, 
+    title={Online Flocking Control of UAVs with Mean-Field Approximation}, 
+    year={2021},
+    volume={},
+    number={},
+    pages={8977-8983},
+    doi={10.1109/ICRA48506.2021.9560899}
+    }
+
+[3] Geometric tracking controller:
 
     @inproceedings{lee2010geometric,
     title={Geometric tracking control of a quadrotor UAV on SE (3)},
