@@ -17,7 +17,7 @@ find_package(GSL REQUIRED)
 
 find_package(catkin REQUIRED COMPONENTS
         roscpp
-        rospy
+        #rospy
         std_msgs
         tf
         geo_controller
