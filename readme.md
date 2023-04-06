@@ -13,7 +13,7 @@ Consider citing our work [1][2] if you find this code helpful for your publicati
 
 A Makefile has been compiled to install ros, install dependancies and/or create and build a catkin workspace, and build the entire uav simulator package. 
 
-NOTE: This package currently runs with ROS1 which is only compatible on older linux distros - for example, it is NOT SUPPORTED on anything later than Ubuntu 20.04
+Note: This package currently runs with ROS1 which is only compatible on older linux distros - for example, it is not supported on anything later than Ubuntu 20.04
 
 **To get the makefile, run:**
 
