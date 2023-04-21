@@ -9,6 +9,54 @@ Consider citing our work [1][2] if you find this code helpful for your publicati
 |:--:| 
 | *A hetergenous swarm of 5 quadrotors stabilizing from an upside-down initialization* |
 
+## Mostly Automated Installation
+
+A Makefile has been compiled to install ros, install dependancies and/or create and build a catkin workspace, and build the entire uav simulator package. 
+
+Note: This package currently runs with ROS1 which is only compatible on older linux distros - for example, it is not supported on anything later than Ubuntu 20.04
+
+**To get the makefile, run:**
+
+```bash
+wget https://gist.githubusercontent.com/matteovidali/caab443e66425e260b6a1c1bd842d28c/raw/188effd1f7e5c4a49cf636abd96bc325a9ac9bd9/Makefile
+```
+
+Then, if you wish to do a full desktop installation of ROS1, this can be done with:
+```bash
+make ros_desktop_install
+```
+
+To get and install the required dependancies, run:
+```bash
+make deps
+```
+
+To create and initialize a NEW catkin_ws with all required packages
+First in the makefile, change the value of 'CATKIN_WS_NAME' from '../catkin_ws' to the path where your workspace should exist.
+Then, run:
+```bash
+make wstool-new
+```
+
+If you have a PRE-EXISTING catkin workspace you would like to build this module into,
+First change the 'CATKIN_WS_NAME' variable to the path of your catkin workspace, then run:
+
+```bash
+make wstool-exists
+```
+
+Finally, if you would like to run a catkin build, you may run:
+```bash
+make build
+```
+This will build the entire catkin space, so be sure to customize this if necessary
+
+After building, you can launch the simulator with 
+```bash
+make launch
+```
+
+## Manual Installation
 **Install dependencies**
 
 Install [`Eigen`](http://eigen.tuxfamily.org/index.php?title=Main_Page), [`Armadillo`](https://www.uio.no/studier/emner/matnat/fys/FYS4411/v13/guides/installing-armadillo/) and [`GNU Science Library (GSL)`](https://www.gnu.org/software/gsl/) before you continue.
