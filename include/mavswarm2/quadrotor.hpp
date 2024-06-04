@@ -47,17 +47,50 @@ using namespace std;
 
 class Quadrotor : public rclcpp::Node {
 public:
-    Quadrotor(int robot_id, double frequency, std::shared_ptr<rclcpp::Node>);
-    void move(const desired_state_t &d_state);
-    void setState(State m_state);
-    State getState();
+    Quadrotor::Quadrotor(int robot_id, double frequency)
+        : robot_id(robot_id), frequency(frequency), nh(n) {
+    sim_time = 0;
+    this->dt = 1/frequency;
+    // this->initialize(1 / frequency);
+    this->u << 0,0,0;
 
-    bool initialize(double dt);
+    // while (marker_pub.getNumSubscribers() < 1) {
+    //     RCLCPP_INFO("Waiting for subscriber");
+    //     ros::Duration(1).sleep();
+    // }
+}
 
-    void desired_pos_cb(const geometry_msgs::msg::Point &pt);
+    void Quadrotor::move(const desired_state_t &d_state) {
+    control_out_t control = controller->get_control(dynamics->get_state(), d_state);
+    dynamics->update(control, sim_time);
 
-    void iteration();
-    void run();
+    // updating the model on rviz
+    set_state_space();
+    send_transform();
+    dynamics->reset_dynamics();
+    sim_time += dt;
+}
+    void Quadrotor::setState(State m_state_) {
+    this->m_state = m_state_;
+}
+
+    // State getState();
+
+    // bool initialize(double dt);
+
+    // void desired_pos_cb(const geometry_msgs::msg::Point &pt);
+
+    // xd should be in NED frame and so does dynamics and controller.
+    void Quadrotor::iteration(const ros::TimerEvent &e) {
+        this->move(this->dss);
+        // this->publish_path();
+        // this->publish_state();
+    }
+
+    void Quadrotor::run() {
+        // ros::Timer timer = nh.createTimer(ros::Duration(1 / frequency), &Quadrotor::iteration, this);
+        ros::spin();
+    }
 
 
 private:

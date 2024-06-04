@@ -21,7 +21,6 @@ limitations under the License.
 #include <eigen3/Eigen/Dense>
 #include "std_msgs/msg/float32_multi_array.hpp"
 
-
 using namespace std;
 using namespace Eigen;
 

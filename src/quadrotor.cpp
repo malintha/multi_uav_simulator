@@ -14,35 +14,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include "quadrotor.h"
-#include <tf2/LinearMath/Quaternion.h>
-#include <tf2_ros/transform_broadcaster.h>
+#include "quadrotor.hpp"
+#include "rclcpp/rclcpp.hpp"
+// #include <tf2/LinearMath/Quaternion.h>
+// #include <tf2_ros/transform_broadcaster.h>
 #include "rclcpp/logging.hpp"
-#include "simulator_utils/simulator_utils.h"
+// #include "simulator_utils/simulator_utils.h"
 
 
-void Quadrotor::move(const desired_state_t &d_state) {
-    control_out_t control = controller->get_control(dynamics->get_state(), d_state);
-    dynamics->update(control, sim_time);
-
-    // updating the model on rviz
-    set_state_space();
-    send_transform();
-    dynamics->reset_dynamics();
-    sim_time += dt;
-}
 
 /**
  * converts the dynamics state_space (NED) to NWU and stores for the quadrotor
  * This is for broadcasting the transformation
 */
-void Quadrotor::set_state_space() {
-    state_space_t ss = dynamics->get_state();
-    state_space.position = simulator_utils::ned_nwu_rotation(ss.position);
-    state_space.R = simulator_utils::ned_nwu_rotation(ss.R);
-    state_space.velocity = simulator_utils::ned_nwu_rotation(ss.velocity);
-    state_space.omega = simulator_utils::ned_nwu_rotation(ss.omega);
-}
+// void Quadrotor::set_state_space() {
+//     state_space_t ss = dynamics->get_state();
+//     state_space.position = simulator_utils::ned_nwu_rotation(ss.position);
+//     state_space.R = simulator_utils::ned_nwu_rotation(ss.R);
+//     state_space.velocity = simulator_utils::ned_nwu_rotation(ss.velocity);
+//     state_space.omega = simulator_utils::ned_nwu_rotation(ss.omega);
+// }
 
 // void Quadrotor::send_transform() {
 //     static tf::TransformBroadcaster br;
@@ -58,75 +49,75 @@ void Quadrotor::set_state_space() {
 //         br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), worldframe, robot_link_name));
 // }
 
-State Quadrotor::getState() {
-    return this->m_state;
-}
+// State Quadrotor::getState() {
+//     return this->m_state;
+// }
 
-bool Quadrotor::load_params() {
-    stringstream ss;
-    ss << "/robot_" << to_string(this->robot_id);
-    string robot_name = ss.str();
-    double temp;
-    if (!nh.getParam(ros::names::append(robot_name, "drone/model/gravity"), params.gravity)) return false;
-    //  = temp;
-    vector<double> J_;
-    if (!nh.getParam(ros::names::append(robot_name, "drone/model/J"), J_)) return false;
-    // Matrix3d J;
-    params.J << J_[0], 0, 0,
-                0, J_[1], 0,
-                0, 0, J_[2];
-    params.J_inv = params.J.inverse();
-    if (!nh.getParam(ros::names::append(robot_name, "drone/model/m"), params.mass)) return false;
-    //  = temp;
-    params.F = 0;
-    Vector3d M(0, 0, 0);
-    params.M = M;
-    vector<double> gains_;
-    if (!nh.getParam(ros::names::append(robot_name, "drone/controller/gains"), gains_)) return false;
-    this->gains = {gains_[0], gains_[1], gains_[2], gains_[3]};
+// bool Quadrotor::load_params() {
+//     stringstream ss;
+//     ss << "/robot_" << to_string(this->robot_id);
+//     string robot_name = ss.str();
+//     double temp;
+//     if (!nh.getParam(ros::names::append(robot_name, "drone/model/gravity"), params.gravity)) return false;
+//     //  = temp;
+//     vector<double> J_;
+//     if (!nh.getParam(ros::names::append(robot_name, "drone/model/J"), J_)) return false;
+//     // Matrix3d J;
+//     params.J << J_[0], 0, 0,
+//                 0, J_[1], 0,
+//                 0, 0, J_[2];
+//     params.J_inv = params.J.inverse();
+//     if (!nh.getParam(ros::names::append(robot_name, "drone/model/m"), params.mass)) return false;
+//     //  = temp;
+//     params.F = 0;
+//     Vector3d M(0, 0, 0);
+//     params.M = M;
+//     vector<double> gains_;
+//     if (!nh.getParam(ros::names::append(robot_name, "drone/controller/gains"), gains_)) return false;
+//     this->gains = {gains_[0], gains_[1], gains_[2], gains_[3]};
 
-    ROS_DEBUG_STREAM("Loaded control parameters");
-    return true;
-}
+//     ROS_DEBUG_STREAM(this->logger, "Loaded control parameters");
+//     return true;
+// }
 
-bool Quadrotor::load_init_vals() {
-    vector<double> position, vel, R, omega;
-    stringstream ss;
-    ss << "/robot_" << to_string(this->robot_id);
-    string robot_name = ss.str();
-    if (!nh.getParam(ros::names::append(robot_name, "position"), position)) return false;
-    if (!nh.getParam(ros::names::append(robot_name, "velocity"), vel)) return false;
-    if (!nh.getParam(ros::names::append(robot_name, "rotation"), R)) return false;
-    if (!nh.getParam(ros::names::append(robot_name, "omega"), omega)) return false;
-    if (!nh.getParam("/frame/fixed", worldframe)) return false;
-    if (!nh.getParam("/frame/prefix", localframe)) return false;
-    init_vals.position = Vector3d(position.data());
-    init_vals.velocity = Vector3d(vel.data());
-    init_vals.R = Matrix3d(R.data());
-    init_vals.omega = Vector3d(omega.data());
+// bool Quadrotor::load_init_vals() {
+//     vector<double> position, vel, R, omega;
+//     stringstream ss;
+//     ss << "/robot_" << to_string(this->robot_id);
+//     string robot_name = ss.str();
+//     if (!nh.getParam(ros::names::append(robot_name, "position"), position)) return false;
+//     if (!nh.getParam(ros::names::append(robot_name, "velocity"), vel)) return false;
+//     if (!nh.getParam(ros::names::append(robot_name, "rotation"), R)) return false;
+//     if (!nh.getParam(ros::names::append(robot_name, "omega"), omega)) return false;
+//     if (!nh.getParam("/frame/fixed", worldframe)) return false;
+//     if (!nh.getParam("/frame/prefix", localframe)) return false;
+//     init_vals.position = Vector3d(position.data());
+//     init_vals.velocity = Vector3d(vel.data());
+//     init_vals.R = Matrix3d(R.data());
+//     init_vals.omega = Vector3d(omega.data());
 
-    this->x0.position = simulator_utils::ned_nwu_rotation(init_vals.position);
-    this->x0.velocity = simulator_utils::ned_nwu_rotation(init_vals.velocity);
-    this->xd0.position = this->x0.position;
-    this->target_pos = simulator_utils::ned_nwu_rotation(init_vals.position);
-    ROS_DEBUG_STREAM("Loaded the drone initialization values");
-    return true;
-}
+//     this->x0.position = simulator_utils::ned_nwu_rotation(init_vals.position);
+//     this->x0.velocity = simulator_utils::ned_nwu_rotation(init_vals.velocity);
+//     this->xd0.position = this->x0.position;
+//     this->target_pos = simulator_utils::ned_nwu_rotation(init_vals.position);
+//     ROS_DEBUG_STREAM(this->logger, "Loaded the drone initialization values");
+//     return true;
+// }
 
-void Quadrotor::desired_pos_cb(const geometry_msgs::Point &pt) {
-    Vector3d xd = {pt.x, pt.y, pt.z};
-    Vector3d b1d(1, 0, 0);
-    this->dss = {xd, b1d};
+// void Quadrotor::desired_pos_cb(const geometry_msgs::Point &pt) {
+//     Vector3d xd = {pt.x, pt.y, pt.z};
+//     Vector3d b1d(1, 0, 0);
+//     this->dss = {xd, b1d};
 
-}
+// }
 
 
 // xd should be in NED frame and so does dynamics and controller.
-void Quadrotor::iteration(const ros::TimerEvent &e) {
-    this->move(this->dss);
-    this->publish_path();
-    this->publish_state();
-}
+// void Quadrotor::iteration(const ros::TimerEvent &e) {
+//     this->move(this->dss);
+//     this->publish_path();
+//     this->publish_state();
+// }
 
 // void Quadrotor::publish_path() {
 //     constexpr int arrowLength = 0.05;
@@ -162,10 +153,10 @@ void Quadrotor::iteration(const ros::TimerEvent &e) {
 //     marker_pub.publish(m);
 // }
 
-void Quadrotor::run() {
-    ros::Timer timer = nh.createTimer(ros::Duration(1 / frequency), &Quadrotor::iteration_rhp, this);
-    ros::spin();
-}
+// void Quadrotor::run() {
+//     ros::Timer timer = nh.createTimer(ros::Duration(1 / frequency), &Quadrotor::iteration_rhp, this);
+//     ros::spin();
+// }
 
 // void Quadrotor::publish_state() {
 //     simulator_utils::Waypoint wp;
@@ -223,29 +214,18 @@ void Quadrotor::run() {
 //     return true;
 // }
 
-void Quadrotor::setState(State m_state_) {
-    this->m_state = m_state_;
-}
+// void Quadrotor::setState(State m_state_) {
+//     this->m_state = m_state_;
+// }
 
-Quadrotor::Quadrotor(int robot_id, double frequency)
-    : Node("quadrotor_" + std::to_string(robot_id)), robot_id(robot_id), frequency(frequency) {
-    sim_time = 0;
-    this->dt = 1 / frequency;
-    // this->initialize(1 / frequency);
-    this->u << 0, 0, 0;
 
-    // while (marker_pub->get_subscription_count() < 1) {
-    //     RCLCPP_INFO(this->get_logger(), "Waiting for subscriber");
-    //     std::this_thread::sleep_for(std::chrono::seconds(1));
-    // }
-}
 
 int main(int argc, char **argv) {
 
     int robot_id = std::atoi(argv[1]);
     double frequency = (double)std::atof(argv[2]);
-
-    RCLCPP_DEBUG_STREAM("initializing : " << robot_id << endl);
+    
+    RCLCPP_DEBUG_STREAM(this->logger, "initializing : " << robot_id << endl);
     rclcpp::init(argc, argv);
     stringstream ss;
     // ss << "robot_"<<robot_id;
