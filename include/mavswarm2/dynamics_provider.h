@@ -19,7 +19,7 @@ limitations under the License.
 
 #include <eigen3/Eigen/Dense>
 // #include "tf2/transform_datatypes.h"
-#include "simulator_utils/simulator_utils.h"
+#include "simulator_utils/types.h"
 #include <gsl/gsl_odeiv2.h>
 
 using namespace Eigen;

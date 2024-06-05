@@ -47,8 +47,8 @@ using namespace std;
 
 class Quadrotor : public rclcpp::Node {
 public:
-    Quadrotor::Quadrotor(int robot_id, double frequency)
-        : robot_id(robot_id), frequency(frequency), nh(n) {
+    Quadrotor(int robot_id, double frequency)
+        :Node("robot_"+to_string(robot_id)), frequency(frequency),robot_id(robot_id) {
     sim_time = 0;
     this->dt = 1/frequency;
     // this->initialize(1 / frequency);
@@ -60,17 +60,7 @@ public:
     // }
 }
 
-    void Quadrotor::move(const desired_state_t &d_state) {
-    control_out_t control = controller->get_control(dynamics->get_state(), d_state);
-    dynamics->update(control, sim_time);
-
-    // updating the model on rviz
-    set_state_space();
-    send_transform();
-    dynamics->reset_dynamics();
-    sim_time += dt;
-}
-    void Quadrotor::setState(State m_state_) {
+    void setState(State m_state_) {
     this->m_state = m_state_;
 }
 
@@ -81,16 +71,11 @@ public:
     // void desired_pos_cb(const geometry_msgs::msg::Point &pt);
 
     // xd should be in NED frame and so does dynamics and controller.
-    void Quadrotor::iteration(const ros::TimerEvent &e) {
-        this->move(this->dss);
-        // this->publish_path();
-        // this->publish_state();
-    }
 
-    void Quadrotor::run() {
-        // ros::Timer timer = nh.createTimer(ros::Duration(1 / frequency), &Quadrotor::iteration, this);
-        ros::spin();
-    }
+    // void run() {
+    //     // ros::Timer timer = nh.createTimer(ros::Duration(1 / frequency), &Quadrotor::iteration, this);
+    //     ros::spin();
+    // }
 
 
 private:
@@ -116,23 +101,43 @@ private:
     params_t params;
     init_vals_t init_vals;
 
-    rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr marker_pub, goal_pub, state_pub;
-    visualization_msgs::msg::Marker m, g;
-    std::vector<geometry_msgs::msg::Point> points;
-    rclcpp::Subscription<geometry_msgs::msg::Point>::SharedPtr desired_state_sub;
-    vector<Vector3d> positions;
+    // rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr marker_pub, goal_pub, state_pub;
+    // visualization_msgs::msg::Marker m, g;
+    // std::vector<geometry_msgs::msg::Point> points;
+    // rclcpp::Subscription<geometry_msgs::msg::Point>::SharedPtr desired_state_sub;
+    // vector<Vector3d> positions;
 
-    bool quad_initialized = false;
+    // bool quad_initialized = false;
 
     // rclcpp::TimerBase::SharedPtr timer;
 
-    void initPaths();
-    void set_state_space();
-    bool load_params();
-    bool load_init_vals();
-    void send_transform();
-    void publish_path();
-    void publish_state();
+    // void initPaths();
+    // void set_state_space();
+    // bool load_params();
+    // bool load_init_vals();
+    // void send_transform();
+    // void publish_path();
+    // void publish_state();
+
+    void move(const desired_state_t &d_state) {
+    control_out_t control = controller->get_control(dynamics->get_state(), d_state);
+    // dynamics->update(control, sim_time);
+    RCLCPP_DEBUG(this->get_logger(), "got control: ");
+    // updating the model on rviz
+    // set_state_space();
+    // send_transform();
+    // dynamics->reset_dynamics();
+    sim_time += dt;
+}
+
+    void iteration() {
+        Vector3d xd = simulator_utils::ned_nwu_rotation(Vector3d{0,0,0});
+        Vector3d b1d(1, 0, 0);
+        desired_state_t dss = {xd, b1d};
+        this->move(dss);
+        // this->publish_path();
+        // this->publish_state();
+    }
 
 };
 

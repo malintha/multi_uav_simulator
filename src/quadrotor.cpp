@@ -224,14 +224,15 @@ int main(int argc, char **argv) {
 
     int robot_id = std::atoi(argv[1]);
     double frequency = (double)std::atof(argv[2]);
-    
-    RCLCPP_DEBUG_STREAM(this->logger, "initializing : " << robot_id << endl);
+    auto logger = rclcpp::get_logger("logger");
+
+    RCLCPP_DEBUG(logger, "initializing : ");
     rclcpp::init(argc, argv);
     stringstream ss;
     // ss << "robot_"<<robot_id;
     // rclcpp::Node n = std::make_shared<rclcpp::Node>(ss.str());
     Quadrotor quad(robot_id, frequency);
-    quad.run();
+    // quad.run();
 
     return 0;
 }

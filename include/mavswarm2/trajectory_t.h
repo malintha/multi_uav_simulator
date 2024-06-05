@@ -32,7 +32,7 @@ struct Trajectory_t {
     vector<double> yc;
     vector<double> zc;
     int D;
-    Trajectory_t(const std_msgs::Float32MultiArrayConstPtr& coeffs);
+    Trajectory_t(const std_msgs::msg::Float32MultiArray& coeffs);
     Trajectory_t();
     Vector3d eval(double d);
 
@@ -40,12 +40,12 @@ struct Trajectory_t {
 
 Trajectory_t::Trajectory_t() = default;
 
-Trajectory_t::Trajectory_t(const std_msgs::Float32MultiArrayConstPtr& coeffs) {
-    this->D = coeffs->data.size()/3;
+Trajectory_t::Trajectory_t(const std_msgs::msg::Float32MultiArray& coeffs) {
+    this->D = coeffs.data.size()/3;
     for(int j=0;j<D;j++) {
-        xc.push_back(coeffs->data[j]);
-        yc.push_back(coeffs->data[j+ D]);
-        zc.push_back(coeffs->data[j+ 2*D]);
+        xc.push_back(coeffs.data[j]);
+        yc.push_back(coeffs.data[j+ D]);
+        zc.push_back(coeffs.data[j+ 2*D]);
     }
 }
 
