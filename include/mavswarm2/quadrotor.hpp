@@ -19,7 +19,7 @@ limitations under the License.
 #ifndef PROJECT_QUADROTOR_H
 #define PROJECT_QUADROTOR_H
 
-#include <controller/controllerImpl.h>
+#include "controller/controllerImpl.hpp"
 #include <tf2_ros/transform_listener.h>
 #include <string>
 #include <visualization_msgs/msg/marker.hpp>
@@ -28,9 +28,8 @@ limitations under the License.
 #include "rclcpp/rclcpp.hpp"
 #include "simulator_interfaces/msg/waypoint.hpp"
 #include "trajectory_t.h"
-
 #include "std_msgs/msg/float32_multi_array.hpp"
-
+using namespace std::chrono_literals;
 #ifndef STATE_H
 #define STATE_H
 enum State {
@@ -44,6 +43,7 @@ enum State {
 
 using namespace Eigen;
 using namespace std;
+using namespace std::chrono_literals;
 
 class Quadrotor : public rclcpp::Node {
 public:
@@ -53,7 +53,7 @@ public:
     this->dt = 1/frequency;
     // this->initialize(1 / frequency);
     this->u << 0,0,0;
-
+    timer_ = this->create_wall_timer(500ms, std::bind(&Quadrotor::iteration, this));
     // while (marker_pub.getNumSubscribers() < 1) {
     //     RCLCPP_INFO("Waiting for subscriber");
     //     ros::Duration(1).sleep();
@@ -100,6 +100,7 @@ private:
     DynamicsProvider *dynamics;
     params_t params;
     init_vals_t init_vals;
+    rclcpp::TimerBase::SharedPtr timer_;
 
     // rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr marker_pub, goal_pub, state_pub;
     // visualization_msgs::msg::Marker m, g;
@@ -120,9 +121,9 @@ private:
     // void publish_state();
 
     void move(const desired_state_t &d_state) {
-    control_out_t control = controller->get_control(dynamics->get_state(), d_state);
+    // control_out_t control = controller->get_control(dynamics->get_state(), d_state);
     // dynamics->update(control, sim_time);
-    RCLCPP_DEBUG(this->get_logger(), "got control: ");
+    RCLCPP_DEBUG(this->get_logger(), "IN MOVE");
     // updating the model on rviz
     // set_state_space();
     // send_transform();
