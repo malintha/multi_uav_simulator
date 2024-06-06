@@ -12,7 +12,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(simulator_interfaces REQUIRED)
 find_package(simulator_utils REQUIRED)
-find_package(controller REQUIRED)
+# find_package(controller REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
@@ -27,17 +27,18 @@ add_library(${PROJECT_NAME} SHARED
 
 add_executable(quadrotor_main src/quadrotor.cpp)
 ament_target_dependencies(mavswarm2 
-                          rclcpp
-                          simulator_utils
-                          simulator_interfaces 
-                          controller 
-                          tf2 
-                          tf2_ros
-                          visualization_msgs
-                          geometry_msgs
-                          std_msgs
-                          )
+rclcpp
+simulator_utils
+simulator_interfaces 
+# controller 
+tf2 
+tf2_ros
+visualization_msgs
+geometry_msgs
+std_msgs
+)
 
+add_executable(quadrotor src/quadrotor.cpp )
 # if(BUILD_TESTING)
 #   find_package(ament_lint_auto REQUIRED)
 
@@ -49,16 +50,18 @@ ament_target_dependencies(mavswarm2
 # find_package(message_runtime REQUIRED)
 
 
+install(
+  TARGETS ${PROJECT_NAME}
+  DESTINATION lib/${PROJECT_NAME}
+
+  # EXPORT ${PROJECT_NAME}
+  # LIBRARY DESTINATION lib
+  # ARCHIVE DESTINATION lib
+  # RUNTIME DESTINATION bin
+  # INCLUDES DESTINATION include
+)
 ament_package()
 
-# install(
-#   TARGETS ${PROJECT_NAME}
-#   EXPORT ${PROJECT_NAME}
-#   LIBRARY DESTINATION lib
-#   ARCHIVE DESTINATION lib
-#   RUNTIME DESTINATION bin
-#   INCLUDES DESTINATION include
-# )
 
 # install(
 #   DIRECTORY include/

@@ -16,11 +16,20 @@ limitations under the License.
 
 */
 
-#include "dynamics_provider.h"
+#ifndef CF_SIMULATOR_DYNAMICSPROVIDER_H
+#define CF_SIMULATOR_DYNAMICSPROVIDER_H
+
+#include <eigen3/Eigen/Dense>
+// #include "tf2/transform_datatypes.h"
+#include "simulator_utils/types.h"
+#include <gsl/gsl_odeiv2.h>
+
+// #include "dynamics_provider.h"
 #include <cstdio>
 #include <gsl/gsl_errno.h>
 // #include "rcutils/logging.h"
 
+using namespace Eigen;
 /**
  * The equations and state_space use NED inertial frame. Therefore, the initial values are needed to be
  * converted from map frame (NWU) to NED frame. And convert them back to map frame before broadcasting.
@@ -28,7 +37,11 @@ limitations under the License.
  * Note: the drone is already started upside down in the xacro, matching to the NED. 
  * So no need to convert the rotation matrix and omega.
 */
-DynamicsProvider::DynamicsProvider(params_t params, init_vals_t init_vals)
+class DynamicsProvider {
+
+public:
+
+DynamicsProvider(params_t params, init_vals_t init_vals)
 {
     this->params = params;
     this->init_vals = init_vals;
@@ -47,11 +60,111 @@ DynamicsProvider::DynamicsProvider(params_t params, init_vals_t init_vals)
 
 }
 
+
+void update(control_out_t control, double sim_time_)
+{
+    t_start = sim_time;
+    double t_stop = sim_time_;
+
+    // update params
+    params.F = control.F;
+    params.M = control.M;
+
+    // load current state from state space
+    double y[DIMENSIONS];
+    int k = 0;
+    for (int i = 0; i < 3; i++, k++)
+    {
+        y[k] = state_space.position[i];
+    }
+
+    for (int i = 0; i < 3; i++, k++)
+    {
+        y[k] = state_space.velocity[i];
+    }
+
+    for (int i = 0; i < 9; i++, k++)
+    {
+        y[k] = state_space.R.data()[i];
+    }
+
+    for (int i = 0; i < 3; i++, k++)
+    {
+        y[k] = state_space.omega[i];
+    }
+
+    gsl_odeiv2_system sys = {step, nullptr, DIMENSIONS, &params};
+    double t = t_start;
+    double h = 1e-5;
+    while (t < t_stop)
+    {
+        // pass the controller c for adaptive step size or nullptr for fixed step size
+        int status = gsl_odeiv2_evolve_apply(e, c, s,
+                                             &sys,
+                                             &t, t_stop,
+                                             &h, y);
+
+        if (status != GSL_SUCCESS)
+            break;
+    }
+
+    // set current state
+    k = 0;
+    for (int i = 0; i < 3; i++, k++)
+    {
+        state_space.position[i] = y[k];
+    }
+
+    for (int i = 0; i < 3; i++, k++)
+    {
+        state_space.velocity[i] = y[k];
+    }
+
+    double R_[9];
+    for (int i = 0; i < 9; i++, k++)
+    {
+        R_[i] = y[k];
+    }
+    // Map<Matrix<double,3,3> > mat_(R_);
+    state_space.R = Matrix3d(R_);
+
+    for (int i = 0; i < 3; i++, k++)
+    {
+        state_space.omega[i] = y[k];
+    }
+    // ROS_DEBUG_STREAM(t_stop<<" R: \n" << state_space.R << " \n v: \n" << state_space.velocity);
+
+    sim_time = t_stop;
+}
+
+state_space_t get_state()
+{
+    return this->state_space;
+}
+
+void reset_dynamics() {
+    gsl_odeiv2_evolve_reset(this->e);
+}
+
+private:
+    const size_t DIMENSIONS = 18;
+    const gsl_odeiv2_step_type *T = gsl_odeiv2_step_rkf45;
+    // Check if GSL is compatible with ROS 2, otherwise use alternatives
+    bool state_set = false;
+    state_space_t state_space;
+    params_t params;
+    init_vals_t init_vals;
+    double sim_time, t_start;
+    // static int step(double t, const double* y, double* f, void *params);
+    gsl_odeiv2_step* s;
+    gsl_odeiv2_control *c;
+    gsl_odeiv2_evolve *e;
+
 /**
  * ODE step for updating the quad state Dynamic equations are obtained from 
  * Geometric Tracking Control of a Quadrotor UAV on SE(3), Lee et al, (2010)
 */
-int DynamicsProvider::step(double t, const double *y, double *f, void *params)
+int step(double t, const double *y, double *f, void *params)
 {
     auto *param = reinterpret_cast<params_t *>(params);
     (void) (t);
@@ -97,87 +210,8 @@ int DynamicsProvider::step(double t, const double *y, double *f, void *params)
     return GSL_SUCCESS;
 }
 
-void DynamicsProvider::update(control_out_t control, double sim_time_)
-{
-    t_start = sim_time;
-    double t_stop = sim_time_;
 
-    // update params
-    params.F = control.F;
-    params.M = control.M;
+};
 
-    // load current state from state space
-    double y[DIMENSIONS];
-    int k = 0;
-    for (int i = 0; i < 3; i++, k++)
-    {
-        y[k] = state_space.position[i];
-    }
 
-    for (int i = 0; i < 3; i++, k++)
-    {
-        y[k] = state_space.velocity[i];
-    }
-
-    for (int i = 0; i < 9; i++, k++)
-    {
-        y[k] = state_space.R.data()[i];
-    }
-
-    for (int i = 0; i < 3; i++, k++)
-    {
-        y[k] = state_space.omega[i];
-    }
-
-    gsl_odeiv2_system sys = {DynamicsProvider::step, nullptr, DIMENSIONS, &params};
-    double t = t_start;
-    double h = 1e-5;
-    while (t < t_stop)
-    {
-        // pass the controller c for adaptive step size or nullptr for fixed step size
-        int status = gsl_odeiv2_evolve_apply(e, c, s,
-                                             &sys,
-                                             &t, t_stop,
-                                             &h, y);
-
-        if (status != GSL_SUCCESS)
-            break;
-    }
-
-    // set current state
-    k = 0;
-    for (int i = 0; i < 3; i++, k++)
-    {
-        state_space.position[i] = y[k];
-    }
-
-    for (int i = 0; i < 3; i++, k++)
-    {
-        state_space.velocity[i] = y[k];
-    }
-
-    double R_[9];
-    for (int i = 0; i < 9; i++, k++)
-    {
-        R_[i] = y[k];
-    }
-    // Map<Matrix<double,3,3> > mat_(R_);
-    state_space.R = Matrix3d(R_);
-
-    for (int i = 0; i < 3; i++, k++)
-    {
-        state_space.omega[i] = y[k];
-    }
-    // ROS_DEBUG_STREAM(t_stop<<" R: \n" << state_space.R << " \n v: \n" << state_space.velocity);
-
-    sim_time = t_stop;
-}
-
-state_space_t DynamicsProvider::get_state()
-{
-    return this->state_space;
-}
-
-void DynamicsProvider::reset_dynamics() {
-    gsl_odeiv2_evolve_reset(this->e);
-}
+#endif

@@ -232,7 +232,9 @@ int main(int argc, char **argv) {
     // ss << "robot_"<<robot_id;
     // rclcpp::Node n = std::make_shared<rclcpp::Node>(ss.str());
     Quadrotor quad(robot_id, frequency);
-    // quad.run();
+    rclcpp::init(argc, argv);
+    rclcpp::spin(std::make_shared<Quadrotor>(0, 500));
+    rclcpp::shutdown();
 
     return 0;
 }
