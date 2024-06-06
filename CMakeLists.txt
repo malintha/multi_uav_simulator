@@ -25,6 +25,7 @@ add_library(${PROJECT_NAME} SHARED
   src/quadrotor.cpp
 )
 
+add_executable(quadrotor_main src/quadrotor.cpp)
 ament_target_dependencies(mavswarm2 
                           rclcpp
                           simulator_utils
