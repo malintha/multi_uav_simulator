@@ -21,7 +21,7 @@ limitations under the License.
 
 #include <eigen3/Eigen/Dense>
 // #include "tf2/transform_datatypes.h"
-#include "simulator_utils/types.h"
+#include "types.hpp"
 #include <gsl/gsl_odeiv2.h>
 
 // #include "dynamics_provider.h"
@@ -164,7 +164,7 @@ private:
  * ODE step for updating the quad state Dynamic equations are obtained from 
  * Geometric Tracking Control of a Quadrotor UAV on SE(3), Lee et al, (2010)
 */
-int step(double t, const double *y, double *f, void *params)
+static int step(double t, const double *y, double *f, void *params)
 {
     auto *param = reinterpret_cast<params_t *>(params);
     (void) (t);
