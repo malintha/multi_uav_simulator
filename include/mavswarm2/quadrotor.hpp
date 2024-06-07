@@ -19,16 +19,17 @@ limitations under the License.
 #ifndef PROJECT_QUADROTOR_H
 #define PROJECT_QUADROTOR_H
 
-#include "controller/controllerImpl.hpp"
-#include <tf2_ros/transform_listener.h>
 #include <string>
-#include <visualization_msgs/msg/marker.hpp>
-#include "dynamics_provider.h"
 #include <eigen3/Eigen/Dense>
 #include "rclcpp/rclcpp.hpp"
-#include "simulator_interfaces/msg/waypoint.hpp"
-#include "trajectory_t.h"
+#include "trajectory_t.hpp"
 #include "std_msgs/msg/float32_multi_array.hpp"
+#include "tf2_ros/transform_listener.h"
+#include "visualization_msgs/msg/marker.hpp"
+#include "dynamics_provider.hpp"
+#include "controller/geometric_controller.hpp"
+#include "simulator_interfaces/msg/waypoint.hpp"
+
 using namespace std::chrono_literals;
 #ifndef STATE_H
 #define STATE_H
