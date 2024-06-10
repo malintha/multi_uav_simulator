@@ -1,0 +1,14 @@
+<launch>
+
+    <arg name="controller_frequency" default="100"/>
+    <!-- <param file="/home/parallels/mavswarm2/src/mavswarm2/config/crazyflie_params.yaml"/> -->
+<node
+        pkg="mavswarm2"
+        exec="mavswarm2"
+        name="your_node_name"
+        output="screen">
+        <param from="/home/parallels/mavswarm2/src/mavswarm2/config/crazyflie_params.yaml"/>
+        <param name="controller_frequency" value="$(var controller_frequency)"/>
+    </node>
+
+</launch>

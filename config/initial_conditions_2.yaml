@@ -1,0 +1,27 @@
+# define the initial positions of each robot in NWU frame
+# change the initial rotation matrix to [1, 0, 0, 0, 1, 0, 0, 0, 1] for initialing the 
+# drones right side up.
+robot_1:
+  ros__parameters:
+    position:
+      x: 2
+      y: 2
+      z: -2
+    velocity:
+      x: 0
+      y: 0
+      z: 0
+    rotation:
+      - 1
+      - 0
+      - 0
+      - 0
+      - -0.9995
+      - -0.0314
+      - 0
+      - 0.0314
+      - -0.9995
+    omega:
+      r: 0
+      p: 0
+      y: 0

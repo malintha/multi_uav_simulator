@@ -18,7 +18,6 @@ limitations under the License.
 #include "rclcpp/rclcpp.hpp"
 // #include <tf2/LinearMath/Quaternion.h>
 // #include <tf2_ros/transform_broadcaster.h>
-#include "rclcpp/logging.hpp"
 // #include "simulator_utils/simulator_utils.h"
 
 
@@ -218,22 +217,22 @@ limitations under the License.
 //     this->m_state = m_state_;
 // }
 
-
-
+/*
+ros2 run mavswarm2 mavswarm2 0 50 --ros-args --log-level DEBUG
+*/ 
 int main(int argc, char **argv) {
 
     int robot_id = std::atoi(argv[1]);
     double frequency = (double)std::atof(argv[2]);
     auto logger = rclcpp::get_logger("logger");
 
-    RCLCPP_DEBUG(logger, "initializing : ");
+    RCLCPP_INFO(logger, "Initialing drone: %s", to_string(robot_id).c_str());
     rclcpp::init(argc, argv);
     stringstream ss;
     ss << "robot_"<<robot_id;
     auto n = std::make_shared<rclcpp::Node>(ss.str());
     Quadrotor quad(robot_id, frequency);
-    rclcpp::init(argc, argv);
-    // rclcpp::spin(std::make_shared<Quadrotor>(0, 500));
+    rclcpp::spin(std::make_shared<Quadrotor>(0, frequency));
     rclcpp::shutdown();
 
     return 0;
