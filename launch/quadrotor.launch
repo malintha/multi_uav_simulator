@@ -1,7 +1,7 @@
 <launch>
 
     <!-- <param file="/home/parallels/mavswarm2/src/mavswarm2/config/crazyflie_params.yaml"/> -->
-    <arg name="controller_frequency" default="100"/>
+    <arg name="controller_frequency" default="500"/>
     <arg name="robot_id" default="0"/>
 
 <node
@@ -10,8 +10,9 @@
         output="screen">
         <param name="controller_frequency" value="$(var controller_frequency)"/>
         <param name="robot_id" value="$(var robot_id)"/>
-        <param name="log-level" value="INFO"/>
+        <param name="log-level" value="ERROR"/>
         <param from="$(find-pkg-share mavswarm2)/config/crazyflie_params.yaml"/>
+        <param from="$(find-pkg-share mavswarm2)/config/initial_conditions_2.yaml"/>
 
     </node>
 

@@ -7,15 +7,15 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   
   
   # find dependencies
-  # find_package(Armadillo REQUIRED)
-  # find_package(GSL REQUIRED)
+  find_package(Armadillo REQUIRED)
+  find_package(GSL REQUIRED)
   find_package(ament_cmake REQUIRED)
   find_package(rclcpp REQUIRED)
   find_package(simulator_interfaces REQUIRED)
   # # find_package(simulator_utils REQUIRED)
   # # find_package(controller REQUIRED)
   find_package(std_msgs REQUIRED)
-  # find_package(turtlesim REQUIRED)
+  # find_package(GSL REQUIRED)
 
   find_package(geometry_msgs REQUIRED)
   # find_package(sensor_msgs REQUIRED)
@@ -36,6 +36,7 @@ ament_target_dependencies(${PROJECT_NAME}
     tf2_ros
     visualization_msgs
     simulator_interfaces
+    
     # turtlesim
 )
 
@@ -65,6 +66,9 @@ install(
 # )
 ament_package()
 
+target_link_libraries(mavswarm2
+        GSL::gsl
+        GSL::gslcblas)
 
 # install(
 #   DIRECTORY include/
