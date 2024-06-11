@@ -1,16 +1,18 @@
-controller:
-  gains:
-    kx: 1
-    kv: 0.5
-    kr: 0.0015
-    komega: 0.00075
+robot_0:
+  ros__parameters:
+    controller:
+      gains:
+        kx: 1
+        kv: 0.5
+        kr: 0.0015
+        komega: 0.00075
 
-model:
-  J:
-    jxx: 2.3951e-5
-    jyy: 2.3951e-5
-    jzz: 3.2347e-5
-  m: 0.032
-  d: 0.08
-  ctf: 0.0037
-  gravity: 9.81
+    model:
+      J:
+        jxx: 2.3951e-5
+        jyy: 2.3951e-5
+        jzz: 3.2347e-5
+      m: 0.032
+      d: 0.08
+      ctf: 0.0037
+      gravity: 9.81

@@ -53,6 +53,10 @@ install(
   TARGETS ${PROJECT_NAME}
   DESTINATION lib/${PROJECT_NAME}
 )
+install(
+  DIRECTORY launch config
+  DESTINATION share/${PROJECT_NAME}/
+)
 #   # EXPORT ${PROJECT_NAME}
 #   # LIBRARY DESTINATION lib
 #   # ARCHIVE DESTINATION lib

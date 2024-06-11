@@ -59,11 +59,14 @@ public:
 
     this->u << 0,0,0;
     timer_ = this->create_wall_timer(500ms, std::bind(&Quadrotor::iteration, this));
+    
+    RCLCPP_INFO(this->get_logger(), "Loading parameters");
 
     if (!load_params()) {
         RCLCPP_ERROR(this->get_logger(), "Could not load the drone parameters");
         rclcpp::shutdown();
     }
+
     //     // load init params
     // if (!load_init_vals()) {
     //     RCLCPP_ERROR(this->get_logger(), "Could not load the drone initial values");
@@ -141,11 +144,14 @@ bool load_params() {
     stringstream ss;
     ss << "/robot_" << to_string(this->robot_id);
     string robot_name = ss.str();
+    RCLCPP_INFO(this->get_logger(), robot_name.c_str());
 
     vector<double> gains(4);
-    this->get_parameter(robot_name + ".drone.model.gravity", params_.gravity);
-    this->get_parameter(robot_name + ".drone.model.m", params_.mass);
-
+    this->get_parameter("/robot_0.model.gravity", params_.gravity);
+    this->get_parameter("model.m", params_.mass);
+    RCLCPP_INFO(this->get_logger(), to_string(params_.gravity).c_str());
+    RCLCPP_INFO(this->get_logger(), to_string(params_.mass).c_str());
+    
     this->gains_ = {gains[0], gains[1], gains[2], gains[3]};
     this->get_parameter(robot_name + ".drone.controller.gains.kx", gains[0]);
     this->get_parameter(robot_name + ".drone.controller.gains.kv", gains[1]);
@@ -166,7 +172,7 @@ bool load_params() {
     params_.F = 0;
     params_.M = Vector3d(0, 0, 0);
 
-    RCLCPP_DEBUG(this->get_logger(), "Loaded control parameters");
+    RCLCPP_INFO(this->get_logger(), "Loaded control parameters");
     return true;
 }
     // void send_transform();
@@ -188,7 +194,7 @@ bool load_params() {
         Vector3d xd = simulator_utils::ned_nwu_rotation(Vector3d{0,0,0});
         Vector3d b1d(1, 0, 0);
         desired_state_t dss = {xd, b1d};
-        this->move(dss);
+        // this->move(dss);
         RCLCPP_INFO(this->get_logger(), "Iteration: ");
 
         // this->publish_path();

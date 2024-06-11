@@ -229,7 +229,7 @@ int main(int argc, char **argv) {
     RCLCPP_INFO(logger, "Initialing drone: %s", to_string(robot_id).c_str());
     rclcpp::init(argc, argv);
     stringstream ss;
-    ss << "robot_"<<robot_id;
+    ss << "robot_0"<<robot_id;
     auto n = std::make_shared<rclcpp::Node>(ss.str());
     Quadrotor quad(robot_id, frequency);
     rclcpp::spin(std::make_shared<Quadrotor>(0, frequency));
