@@ -30,14 +30,15 @@ using namespace Eigen;
 
 namespace su = simulator_utils;
 
-class ControllerImpl
+class Geometric_Controller
 {
 
 public:
 
-ControllerImpl(params_t params_, init_vals_t init_vals_, gains_t gains_, double dt_)
-                :params(std::move(params_)), init_vals(std::move(init_vals_)), gains(gains_), dt(dt_)
+Geometric_Controller(params_t params_, gains_t gains_, double dt_)
+                :params(std::move(params_)), gains(gains_), dt(dt_)
 {
+    
     // initialize derivative operators
     dxdt_ = dxdt(0.05, dt, 1);
     d2xdt = dxdt(0.05, dt, 2);
@@ -49,6 +50,7 @@ ControllerImpl(params_t params_, init_vals_t init_vals_, gains_t gains_, double 
 
     dvdt = dxdt(0.05, dt, 1);
     d2vdt = dxdt(0.05, dt, 2);
+
 }
 
 control_out_t get_control(state_space_t ss, const desired_state_t& desired_s)

@@ -21,7 +21,7 @@ limitations under the License.
 
 #include <string>
 #include <eigen3/Eigen/Dense>
-#include "rclcpp/rclcpp.hpp"
+
 #include "rclcpp/logging.hpp"
 
 #include "trajectory_t.hpp"
@@ -51,7 +51,7 @@ using namespace std::chrono_literals;
 class Quadrotor : public rclcpp::Node {
 public:
     Quadrotor(int robot_id, double frequency)
-        :Node("robot_"+to_string(robot_id)), frequency(frequency),robot_id(robot_id) {
+        :Node("robot_"+to_string(robot_id)), frequency(frequency), robot_id(robot_id) {
     sim_time = 0;
     this->dt = 1/frequency;
     // this->initialize(1 / frequency);
@@ -67,18 +67,13 @@ public:
         rclcpp::shutdown();
     }
 
-    //     // load init params
-    // if (!load_init_vals()) {
-    //     RCLCPP_ERROR(this->get_logger(), "Could not load the drone initial values");
-    //     return false;
-    // }
-
+    
     // logger = this->get_logger();
     // while (marker_pub.getNumSubscribers() < 1) {
         // RCLCPP_INFO(logger, "Waiting for subscriber");
     //     ros::Duration(1).sleep();
     // }
-    // controller = std::make_shared<ControllerImpl>(params, init_vals, gains, dt);
+    controller = std::make_shared<Geometric_Controller>(params_, gains_, dt);
 
 
 
@@ -119,7 +114,7 @@ private:
     geometry_msgs::msg::Point target_next;
     bool set_next_target = false;
 
-    std::shared_ptr<ControllerImpl> controller;
+    std::shared_ptr<Geometric_Controller> controller;
     state_space_t state_space;
     // rclcpp::Logger logger;
     std::shared_ptr<DynamicsProvider> dynamics_;
@@ -141,37 +136,31 @@ private:
     // void set_state_space();
 
 bool load_params() {
-    stringstream ss;
-    ss << "/robot_" << to_string(this->robot_id);
-    string robot_name = ss.str();
-    RCLCPP_INFO(this->get_logger(), robot_name.c_str());
 
-    vector<double> gains(4);
-    this->get_parameter("/robot_0.model.gravity", params_.gravity);
-    this->get_parameter("model.m", params_.mass);
-    RCLCPP_INFO(this->get_logger(), to_string(params_.gravity).c_str());
-    RCLCPP_INFO(this->get_logger(), to_string(params_.mass).c_str());
+    declare_parameter("controller_gains", std::vector<double>(4, 0.0));
+    vector<double> gains = get_parameter("controller_gains").as_double_array();
     
-    this->gains_ = {gains[0], gains[1], gains[2], gains[3]};
-    this->get_parameter(robot_name + ".drone.controller.gains.kx", gains[0]);
-    this->get_parameter(robot_name + ".drone.controller.gains.kv", gains[1]);
-    this->get_parameter(robot_name + ".drone.controller.gains.kr", gains[2]);
-    this->get_parameter(robot_name + ".drone.controller.gains.komega", gains[3]);
-    
-    vector<double> J_(3);
-    this->get_parameter(robot_name + ".drone.model.J.jxx", J_[0]);
-    this->get_parameter(robot_name + ".drone.model.J.jyy", J_[1]);
-    this->get_parameter(robot_name + ".drone.model.J.jzz", J_[2]);
-    
-    params_.J << J_[0], 0, 0,
+    declare_parameter("model.m", 0.00);
+    declare_parameter("model.gravity", 9.81);
+    declare_parameter("model.d", 0.08);
+    declare_parameter("model.ctf", 0.0037);
+    declare_parameter("model.J", std::vector<double>(3, 0.0));
+    params_.mass = get_parameter("model.m").as_double();
+    params_.gravity = get_parameter("model.gravity").as_double();
+
+    vector<double> J_ = get_parameter("model.J").as_double_array();; 
+    params_.J <<    J_[0], 0, 0,
                     0, J_[1], 0,
                     0, 0, J_[2];
     params_.J_inv = params_.J.inverse();
-
-    // Load mass
     params_.F = 0;
     params_.M = Vector3d(0, 0, 0);
-
+    RCLCPP_INFO(this->get_logger(), "Param: Gravity: %s ",to_string(params_.gravity).c_str());
+    RCLCPP_INFO(this->get_logger(), "Param: Mass: %s ",to_string(params_.mass).c_str());
+    RCLCPP_INFO(this->get_logger(), "Param: MOI: %6f %6f %6f",J_[0], J_[1], J_[2]);
+   RCLCPP_INFO(this->get_logger(), "Param: Controller Gains: %4f %4f %4f %4f", gains[0], gains[1],
+                                                                                gains[2], gains[3]
+                                                            );
     RCLCPP_INFO(this->get_logger(), "Loaded control parameters");
     return true;
 }
@@ -180,21 +169,21 @@ bool load_params() {
     // void publish_state();
 
     void move(const desired_state_t &d_state) {
-    control_out_t control = controller->get_control(dynamics_->get_state(), d_state);
-    // dynamics->update(control, sim_time);
-    RCLCPP_INFO(this->get_logger(), "IN MOVE");
-    // updating the model on rviz
-    // set_state_space();
-    // send_transform();
-    // dynamics->reset_dynamics();
-    sim_time += dt;
+        // control_out_t control = controller->get_control(dynamics_->get_state(), d_state);
+        // dynamics->update(control, sim_time);
+        RCLCPP_INFO(this->get_logger(), "IN MOVE");
+        // updating the model on rviz
+        // set_state_space();
+        // send_transform();
+        // dynamics->reset_dynamics();
+        sim_time += dt;
 }
 
     void iteration() {
         Vector3d xd = simulator_utils::ned_nwu_rotation(Vector3d{0,0,0});
         Vector3d b1d(1, 0, 0);
         desired_state_t dss = {xd, b1d};
-        // this->move(dss);
+        this->move(dss);
         RCLCPP_INFO(this->get_logger(), "Iteration: ");
 
         // this->publish_path();

@@ -10,7 +10,8 @@
         output="screen">
         <param name="controller_frequency" value="$(var controller_frequency)"/>
         <param name="robot_id" value="$(var robot_id)"/>
-        <param from="/home/parallels/mavswarm2/src/mavswarm2/config/crazyflie_params.yaml"/>
+        <param name="log-level" value="INFO"/>
+        <param from="$(find-pkg-share mavswarm2)/config/crazyflie_params.yaml"/>
 
     </node>
 
