@@ -58,7 +58,7 @@ public:
     m_state = State::Idle;
 
     this->u << 0,0,0;
-    timer_ = this->create_wall_timer(2ms, std::bind(&Quadrotor::iteration, this));
+    timer_ = this->create_wall_timer(10ms, std::bind(&Quadrotor::iteration, this));
     
     RCLCPP_INFO(this->get_logger(), "Loading parameters");
 
@@ -73,8 +73,9 @@ public:
         // RCLCPP_INFO(logger, "Waiting for subscriber");
     //     ros::Duration(1).sleep();
     // }
-    controller = std::make_shared<Geometric_Controller>(params_, gains_, dt);
+    controller = std::make_shared<Geometric_Controller>(params_, gains, dt);
     dynamics = std::make_shared<DynamicsProvider>(params_, init_vals);
+    set_state_space();
     this->setState(State::Autonomous);
 
 }
@@ -102,7 +103,7 @@ private:
     double sim_time, tau, dt, frequency;
     int robot_id;
     std::string worldframe, localframe, robot_link_name;
-    gains_t gains_;
+    gains_t gains;
     std::vector<Eigen::Vector3d> traj_piece;
     int xd_it;
     Vector3d u, target_pos;
@@ -136,7 +137,7 @@ private:
 bool load_params() {
 
     declare_parameter("controller_gains", std::vector<double>(4, 0.0));
-    vector<double> gains = get_parameter("controller_gains").as_double_array();
+    vector<double> gains_ = get_parameter("controller_gains").as_double_array();
     
     declare_parameter("model.m", 0.00);
     declare_parameter("model.gravity", 9.81);
@@ -166,12 +167,14 @@ bool load_params() {
     init_vals.velocity << Vector3d(vel_.data());
     init_vals.R << Matrix3d(rot_.data());
     init_vals.omega << Vector3d(omega_.data());
+    gains = {.kx = gains_[0], .kv = gains_[1], .kr = gains_[3], .komega = gains_[3]};
+    RCLCPP_INFO(this->get_logger(), "Init Params: : %4f %4f %4f ", init_vals.position[0], init_vals.position[1],init_vals.position[2]);
 
     RCLCPP_INFO(this->get_logger(), "Param: Gravity: %s ",to_string(params_.gravity).c_str());
     RCLCPP_INFO(this->get_logger(), "Param: Mass: %s ",to_string(params_.mass).c_str());
     RCLCPP_INFO(this->get_logger(), "Param: MOI: %6f %6f %6f",J_[0], J_[1], J_[2]);
-    RCLCPP_INFO(this->get_logger(), "Param: Controller Gains: %4f %4f %4f %4f", gains[0], gains[1],
-                                                                                gains[2], gains[3]);
+    RCLCPP_INFO(this->get_logger(), "Param: Controller Gains: %4f %4f %4f %4f", gains.kx, gains.kv,
+                                                                                gains.kr, gains.komega);
     RCLCPP_INFO(this->get_logger(), "Loaded control parameters");
     return true;
 }
@@ -181,7 +184,10 @@ bool load_params() {
 
     void move(const desired_state_t &d_state) {
         state_space_t s = dynamics->get_state();
-        control_out_t control = controller->get_control(dynamics->get_state(), d_state);
+        // RCLCPP_INFO(this->get_logger(), "dss %4f %4f %4f", d_state.x[0], d_state.x[1], d_state.x[2]);
+        RCLCPP_INFO(this->get_logger(), "ss %4f %4f %4f", s.position[0], s.position[1], s.position[2]);
+
+        control_out_t control = controller->get_control(s, d_state);
         dynamics->update(control, sim_time);
         RCLCPP_INFO(this->get_logger(), "control %4f %4f %4f", control.F, control.M[0], control.M[1]);
         // updating the model on rviz

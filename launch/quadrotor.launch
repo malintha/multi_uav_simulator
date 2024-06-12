@@ -1,7 +1,7 @@
 <launch>
 
     <!-- <param file="/home/parallels/mavswarm2/src/mavswarm2/config/crazyflie_params.yaml"/> -->
-    <arg name="controller_frequency" default="500"/>
+    <arg name="controller_frequency" default="100"/>
     <arg name="robot_id" default="0"/>
 
 <node

@@ -1,4 +1,3 @@
-/*
 
 Copyright (c) 2024 Malintha Fernando (malintha@onmail.com)
 

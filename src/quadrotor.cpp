@@ -226,13 +226,13 @@ int main(int argc, char **argv) {
     double frequency = (double)std::atof(argv[2]);
     auto logger = rclcpp::get_logger("logger");
 
-    RCLCPP_INFO(logger, "Initialing drone: %s", to_string(robot_id).c_str());
+    RCLCPP_INFO(logger, "Initialing drone: %d %3f", robot_id, frequency);
     rclcpp::init(argc, argv);
     stringstream ss;
     // ss << "robot_0"<<robot_id;
     // auto n = std::make_shared<rclcpp::Node>(ss.str());
     // Quadrotor quad(robot_id, frequency);
-    rclcpp::spin(std::make_shared<Quadrotor>(0, 500));
+    rclcpp::spin(std::make_shared<Quadrotor>(robot_id, frequency));
     rclcpp::shutdown();
 
     return 0;

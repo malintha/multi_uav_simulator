@@ -28,7 +28,7 @@ limitations under the License.
 #include <cstdio>
 #include <gsl/gsl_errno.h>
 // #include "rcutils/logging.h"
-
+#include <stdio.h>
 using namespace Eigen;
 /**
  * The equations and state_space use NED inertial frame. Therefore, the initial values are needed to be
@@ -47,6 +47,7 @@ DynamicsProvider(params_t params, init_vals_t init_vals)
     this->init_vals = init_vals;
     if (!state_set)
     {
+        std::cout << "in set state 0 "<<init_vals.position<<std::endl;
         state_space.position = simulator_utils::ned_nwu_rotation(init_vals.position);
         state_space.velocity = simulator_utils::ned_nwu_rotation(init_vals.velocity);
         state_space.R = (init_vals.R);
