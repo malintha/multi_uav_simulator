@@ -1,3 +1,6 @@
+
+## Currently I am migrating the code to ros2. Checkout the ``ros2`` branch for updates
+
 # Mavswarm: A Lightweight Multi-Aerial Vehicle Simulator 
 
 Mavswarm is a lightweight and fast Multi-Aerial Vehicle simulator based on ROS (Robot Operating System). It supports simulating heterogenous quadrotor swarms of upto 10 robots on a single desktop with physics. Mavswarm also supports quadrotor control, trajectory optimization and receding horizon planning (RHP). Currently, the internal controller uses the Lee's geometric tracking controller [3] and it is tuned for two different quadrotor models out of the box. 
