@@ -47,7 +47,6 @@ DynamicsProvider(params_t params, init_vals_t init_vals)
     this->init_vals = init_vals;
     if (!state_set)
     {
-        std::cout << "in set state ### "<<init_vals.position<<std::endl;
         state_space.position = simulator_utils::ned_nwu_rotation(init_vals.position);
         state_space.velocity = simulator_utils::ned_nwu_rotation(init_vals.velocity);
         state_space.R = (init_vals.R);

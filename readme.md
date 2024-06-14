@@ -1,9 +1,8 @@
-# Mavswarm2 (Under development)
+# Mavswarm2 (under development)
 
-Mavswarm is a lightweight and fast Multi-Aerial Vehicle simulator based on ROS (Robot Operating System). It supports simulating heterogenous quadrotor swarms of upto 10 robots on a single desktop with physics. 
+Mavswarm is a lightweight and fast Multi-Aerial Vehicle simulator built on Robot Operating System (ROS), entirely written in C++. Mavswarm2 is the ROS2-compatible version of Mavswarm. It supports simulating heterogenous quadrotor swarms of upto 10 robots on a single desktop with physics. 
 
 It has 
-
 - quadrotor control (ROS1/ROS2) 
 - trajectory optimization and receding horizon planning (only working in ROS1. I welcome any PRs/Contributions). 
 
