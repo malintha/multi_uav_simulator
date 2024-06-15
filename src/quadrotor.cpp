@@ -19,6 +19,8 @@ limitations under the License.
 
 /*
 ros2 run mavswarm2 mavswarm2 0 50 --ros-args --log-level DEBUG
+ros2 topic pub --rate 1 /desired_state simulator_interfaces/msg/GeometricCtrl "{position:{x: 2.0, y: 2.4, z: -3.0},heading:{x: 1, y: 0, z: 0}}"
+
 */ 
 int main(int argc, char **argv) {
 
@@ -27,7 +29,6 @@ int main(int argc, char **argv) {
     double frequency = (double)std::atof(argv[2]);
     auto logger = rclcpp::get_logger("logger");
 
-    RCLCPP_INFO(logger, "Initialing drone: %d %3f", robot_id, frequency);
 
     rclcpp::spin(std::make_shared<Quadrotor>(robot_id, frequency));
     rclcpp::shutdown();

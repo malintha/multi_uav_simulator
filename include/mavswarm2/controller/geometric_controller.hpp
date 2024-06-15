@@ -36,7 +36,7 @@ class Geometric_Controller
 public:
 
 Geometric_Controller(params_t params_, gains_t gains_, double dt_)
-                :params(std::move(params_)), gains(gains_), dt(dt_)
+                :params(std::move(params_)), dt(dt_), gains(gains_)
 {
     
     // initialize derivative operators

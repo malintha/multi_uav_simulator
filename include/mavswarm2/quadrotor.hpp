@@ -30,8 +30,10 @@ limitations under the License.
 #include "dynamics_provider.hpp"
 #include "controller/geometric_controller.hpp"
 #include "simulator_interfaces/msg/waypoint.hpp"
+#include "simulator_interfaces/msg/geometric_ctrl.hpp"
 
 using namespace std::chrono_literals;
+
 #ifndef STATE_H
 #define STATE_H
 enum State {
@@ -53,11 +55,10 @@ public:
         :Node("robot_"+to_string(robot_id)), frequency(frequency), robot_id(robot_id) {
     sim_time = 0;
     dt = 1/frequency;
-    RCLCPP_INFO(this->get_logger(), "dt: %4f ", dt);
-    // dt = 0.01;
+    RCLCPP_INFO(this->get_logger(), "Initialing drone: %d %3f", robot_id, frequency);
+
     m_state = State::Idle;
 
-    this->u << 0,0,0;
     timer_ = this->create_wall_timer(std::chrono::duration<double>(dt), std::bind(&Quadrotor::iteration, this));
     
     RCLCPP_INFO(this->get_logger(), "Loading parameters");
@@ -67,6 +68,8 @@ public:
         rclcpp::shutdown();
     }
 
+    d_state_sub = this->create_subscription<simulator_interfaces::msg::GeometricCtrl>(
+      "robot_"+to_string(this->robot_id)+"/desired_state", 10, std::bind(&Quadrotor::desired_state_cb, this, std::placeholders::_1));
     
     // logger = this->get_logger();
     // while (marker_pub.getNumSubscribers() < 1) {
@@ -74,7 +77,7 @@ public:
     //     ros::Duration(1).sleep();
     // }
     controller = std::make_shared<Geometric_Controller>(params_, gains, dt);
-    dynamics = std::make_shared<DynamicsProvider>(params_, init_vals);
+    dynamics = std::make_shared<DynamicsProvider>(params_, x0);
     set_state_space();
     this->setState(State::Autonomous);
 
@@ -91,27 +94,18 @@ public:
 
     // xd should be in NED frame and so does dynamics and controller.
 
-    // void run() {
-    //     // ros::Timer timer = nh.createTimer(ros::Duration(1 / frequency), &Quadrotor::iteration, this);
-    //     ros::spin();
-    // }
 
 
 private:
 
     State m_state;
-    double sim_time, tau, dt, frequency;
+    double sim_time, dt, frequency;
     int robot_id;
     std::string worldframe, localframe, robot_link_name;
     gains_t gains;
-    std::vector<Eigen::Vector3d> traj_piece;
-    int xd_it;
-    Vector3d u, target_pos;
-    state_space_t x0, xd0;
-    desired_state_t dss;
-    bool set_init_target;
-    geometry_msgs::msg::Point target_next;
-    bool set_next_target = false;
+    state_space_t x0;
+    // geometry_msgs::msg::Point target_next;
+    // bool set_next_target = false;
 
     std::shared_ptr<Geometric_Controller> controller;
     state_space_t state_space;
@@ -120,6 +114,13 @@ private:
     params_t params_;
     init_vals_t init_vals;
     rclcpp::TimerBase::SharedPtr timer_;
+    rclcpp::Subscription<simulator_interfaces::msg::GeometricCtrl>::SharedPtr d_state_sub;
+
+
+void desired_state_cb(const simulator_interfaces::msg::GeometricCtrl::SharedPtr msg) const {
+      RCLCPP_INFO(this->get_logger(), "I heard: '%s'", to_string(msg->heading.x).c_str());
+    }
+    
 
     // rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr marker_pub, goal_pub, state_pub;
     // visualization_msgs::msg::Marker m, g;
@@ -163,12 +164,12 @@ bool load_params() {
     vector<double> vel_ = get_parameter("velocity").as_double_array();
     vector<double> rot_ = get_parameter("rotation").as_double_array();
     vector<double> omega_ = get_parameter("omega").as_double_array();
-    init_vals.position = simulator_utils::ned_nwu_rotation(Vector3d(pos_.data()));
-    init_vals.velocity << simulator_utils::ned_nwu_rotation(Vector3d(vel_.data()));
-    init_vals.R << simulator_utils::ned_nwu_rotation(Matrix3d(rot_.data()));
-    init_vals.omega << simulator_utils::ned_nwu_rotation(Vector3d(omega_.data()));
-    gains = {.kx = gains_[0], .kv = gains_[1], .kr = gains_[3], .komega = gains_[3]};
-    RCLCPP_INFO(this->get_logger(), "Init Params: : %4f %4f %4f ", init_vals.position[0], init_vals.position[1],init_vals.position[2]);
+    x0.position = simulator_utils::ned_nwu_rotation(Vector3d(pos_.data()));
+    x0.velocity << simulator_utils::ned_nwu_rotation(Vector3d(vel_.data()));
+    x0.R << simulator_utils::ned_nwu_rotation(Matrix3d(rot_.data()));
+    x0.omega << simulator_utils::ned_nwu_rotation(Vector3d(omega_.data()));
+    gains = {gains_[0], gains_[1], gains_[3], gains_[3]};
+    RCLCPP_INFO(this->get_logger(), "Init Params: : %4f %4f %4f ", x0.position[0], x0.position[1],x0.position[2]);
 
     RCLCPP_INFO(this->get_logger(), "Param: Gravity: %s ",to_string(params_.gravity).c_str());
     RCLCPP_INFO(this->get_logger(), "Param: Mass: %s ",to_string(params_.mass).c_str());
@@ -184,18 +185,17 @@ bool load_params() {
 
     void move(const desired_state_t &d_state) {
         state_space_t s = dynamics->get_state();
-        // RCLCPP_INFO(this->get_logger(), "dss %4f %4f %4f", d_state.x[0], d_state.x[1], d_state.x[2]);
-        RCLCPP_DEBUG(this->get_logger(), "%2f position %4f %4f %4f", sim_time, s.position[0], s.position[1], s.position[2]);
-        // RCLCPP_INFO(this->get_logger(), "%2f rotation %4f %4f %4f", sim_time, s.R(0,0), s.R(1,1), s.R(2,2));
-
         control_out_t control = controller->get_control(s, d_state);
-        RCLCPP_DEBUG(this->get_logger(), "%2f control %4f %4f %4f %4f", sim_time, control.F, control.M[0], control.M[1], control.M[2]);
         dynamics->update(control, sim_time);
-        // RCLCPP_INFO(this->get_logger(), "control %4f %4f %4f", control.F, control.M[0], control.M[1]);
+
         // updating the model on rviz
         set_state_space();
         // send_transform();
+
         dynamics->reset_dynamics();
+        RCLCPP_DEBUG(this->get_logger(), "%2f position %4f %4f %4f", sim_time, s.position[0], s.position[1], s.position[2]);
+        RCLCPP_DEBUG(this->get_logger(), "%2f control %4f %4f %4f %4f", sim_time, control.F, control.M[0], control.M[1], control.M[2]);
+       
         // RCLCPP_INFO(this->get_logger(), "position: %4f %4f %4f", s.position[0], 
         //                                 s.position[1], s.position[2]);
         // RCLCPP_INFO(this->get_logger(), "rotation: %4f %4f %4f", state_space.R(0, 0), 
@@ -212,11 +212,11 @@ bool load_params() {
     }
 
     void iteration() {
-        Vector3d xd = simulator_utils::ned_nwu_rotation(init_vals.position);
+        Vector3d xd = simulator_utils::ned_nwu_rotation(x0.position);
         Vector3d b1d(1, 0, 0);
         desired_state_t dss = {xd, b1d};
+
         this->move(dss);
-        // RCLCPP_INFO(this->get_logger(), "Iteration: ");
 
         // this->publish_path();
         // this->publish_state();

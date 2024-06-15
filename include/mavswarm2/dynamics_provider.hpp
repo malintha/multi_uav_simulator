@@ -41,10 +41,9 @@ class DynamicsProvider {
 
 public:
 
-DynamicsProvider(params_t params, init_vals_t init_vals)
+DynamicsProvider(params_t params, state_space_t init_vals)
 {
     this->params = params;
-    this->init_vals = init_vals;
     if (!state_set)
     {
         state_space.position = simulator_utils::ned_nwu_rotation(init_vals.position);
@@ -149,7 +148,6 @@ void reset_dynamics() {
 private:
     const size_t DIMENSIONS = 18;
     const gsl_odeiv2_step_type *T = gsl_odeiv2_step_rkf45;
-    // Check if GSL is compatible with ROS 2, otherwise use alternatives
     bool state_set = false;
     state_space_t state_space;
     params_t params;
