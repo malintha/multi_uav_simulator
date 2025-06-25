@@ -26,7 +26,7 @@ Install Eigen, Armadillo and GNU Science Library (GSL) before you continue.
     
     mkdir -p mavswarm2/src
     cd mavswarm2/src
-    git clone -b ros2 git@github.com:malintha/simulator_utils.git
+    git clone -b ros2 git@github.com:malintha/simulator_interfaces.git
     git clone -b ros2 git@github.com:malintha/multi_uav_simulator.git
 
 **Building the simulator**
