@@ -1,19 +1,31 @@
 <launch>
 
-    <!-- <param file="/home/parallels/mavswarm2/src/mavswarm2/config/crazyflie_params.yaml"/> -->
-    <arg name="controller_frequency" default="100"/>
-    <arg name="robot_id" default="0"/>
-    <arg name="log_level" default="INFO"/>
+<!-- <param file="/home/parallels/mavswarm2/src/mavswarm2/config/crazyflie_params.yaml"/> -->
+<arg name="controller_frequency" default="100"/>
+<arg name="robot_id" default="0"/>
+<arg name="log_level" default="INFO"/>
     
 <node
-        pkg="mavswarm2"
-        exec="mavswarm2"
-        output="screen"
-        args="$(var robot_id) $(var controller_frequency) --ros-args --log-level $(var log_level)">
-        
-        <param from="$(find-pkg-share mavswarm2)/config/crazyflie_params.yaml"/>
-        <param from="$(find-pkg-share mavswarm2)/config/initial_conditions_2.yaml"/>
+    pkg="mavswarm2"
+    exec="mavswarm2"
+    output="screen"
+    name="robot_0"
+    namespace="mavswarm2"
+    args="$(var robot_id) $(var controller_frequency) --ros-args --log-level $(var log_level)">
+    
+    <param from="$(find-pkg-share mavswarm2)/config/crazyflie_params.yaml"/>
+    <param from="$(find-pkg-share mavswarm2)/config/initial_conditions_2.yaml"/>
 
-    </node>
+</node>
+
+<node
+    pkg="rviz2"
+    exec="rviz2"
+    output="screen"
+    name="rviz2"
+    namespace=""
+    args="-d $(find-pkg-share mavswarm2)/config/simulation.rviz">
+
+</node>
 
 </launch>
