@@ -2,7 +2,9 @@
 
 Mavswarm2 is the ROS2-compatible version of Mavswarm. It supports simulating heterogenous quadrotor swarms of more than 10 robots on a single desktop with physics. 
 
-New in Mavswarm2 is trajectory optimization with collision avoidance using sequential convex programming. All the functionality is self-contained, and does not depend on any other ros packages except for ``simulator_interfaces``.
+**New in Mavswarm2 is fully-distributed trajectory optimization with collision avoidance using sequential convex programming!**
+ 
+All the functionality is self-contained, and does not depend on any other ros packages except for ``simulator_interfaces``.
 
 **Functionalities:** 
 - quadrotor control (same geometric controller as mavswarm) 
@@ -16,13 +18,12 @@ The internal controller uses the Lee's geometric tracking controller [3] and it 
 
 Consider citing our work [1][2] if you find this code helpful for your publications. 
 
-| ![Cover Image](https://github.com/malintha/multi_uav_simulator/blob/ros2/cover.png?raw=true) |
-|:--:| 
-| *A swarm of 10 drones stabilizing from an upside-down initialization* |
+Consider citing our work [1][2] if you find this code helpful for your publications.
 
-| ![Cover Image](https://github.com/malintha/multi_uav_simulator/blob/ros2/cover2.png?raw=true) |
-|:--:| 
-| *10 drones forming letter "U"* |
+| Drone stabilization | Letter formation |
+|:-------------------:|:----------------:|
+| <img src="https://github.com/malintha/multi_uav_simulator/blob/ros2/cover.png?raw=true" width="600"> | <img src="https://github.com/malintha/multi_uav_simulator/blob/ros2/cover2.png?raw=true" width="300"> |
+| *A swarm of 10 drones stabilizing from an upside-down initialization* | *10 drones forming letter "U"* |
 
 ## Installation
 
@@ -49,7 +50,8 @@ Install Eigen, Armadillo and GNU Science Library (GSL) before you continue.
 
 
 **Formation Control Goal Publishing**
-The example script ``publish_words.py`` publishes locations to the drones such that it can visualize a word, one letter-at-a-time using a formation of 10 drones. 
+
+The example script ``publish_words.py`` publishes locations to the drones such that it can visualize a word, one letter-at-a-time using a formation of 10 drones. It computes a bipartite matching to find the least distance matching drones, then issue collision-free trajectory waypoints to be tracked using the internal geometric controller in a decentralized manner. 
 
     python publish_words.py HELLO
 
