@@ -31,10 +31,7 @@ limitations under the License.
 #include "tf2_ros/transform_broadcaster.h"
 #include "tf2/LinearMath/Quaternion.h"
 
-#include "mav_trajectory_generation_ros2/polynomial_optimization_linear.h"
-#include "mav_trajectory_generation_ros2/trajectory.h"
-#include "mav_trajectory_generation_ros2/motion_defines.h"
-#include "mav_trajectory_generation_ros2/vertex.h"
+#include "scp/scp_planner.hpp"
 
 #include "trajectory_t.hpp"
 #include "dynamics_provider.hpp"
@@ -67,7 +64,6 @@ public:
         dt = 1.0 / frequency;
         m_state = State::Idle;
         set_init_target = false;
-        set_next_target = false;
 
         RCLCPP_INFO(this->get_logger(), "dt: %4f ", dt);
 
@@ -101,6 +97,30 @@ public:
             std::bind(&Quadrotor::desired_pos_cb, this, std::placeholders::_1));
         RCLCPP_INFO(this->get_logger(), "Subscribing to goal topic: %s", desired_topic.c_str());
 
+        // SCP planner owns neighbour-trajectory communication; quad just feeds
+        // it goals and reads back the reference each tick.
+        scp_planner_ = std::make_shared<scp::ScpPlanner>(this, robot_id, dt);
+
+        // trajectory trail: a LINE_STRIP marker (last N points) on this robot's
+        // own topic, e.g. /mavswarm2/robot_3/trajectory.
+        path_marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>(
+            "robot_" + std::to_string(robot_id) + "/trajectory", 10);
+        // distinct colour per robot from the id, via the golden-ratio hue trick:
+        // well-spread, unique colours for ANY number of robots (no fixed palette).
+        hsv_to_rgb(std::fmod(robot_id * 0.6180339887f, 1.0f), 0.85f, 1.0f,
+                   base_r_, base_g_, base_b_);
+        path_marker_.header.frame_id = worldframe;        // "map"
+        path_marker_.ns   = "trajectory";
+        path_marker_.id   = robot_id;
+        path_marker_.type = visualization_msgs::msg::Marker::LINE_STRIP;
+        path_marker_.action = visualization_msgs::msg::Marker::ADD;
+        path_marker_.scale.x = 0.03;                      // line width
+        path_marker_.pose.orientation.w = 1.0;
+        path_marker_.color.r = base_r_;
+        path_marker_.color.g = base_g_;
+        path_marker_.color.b = base_b_;
+        path_marker_.color.a = 1.0;
+
         this->setState(State::Autonomous);
     }
 
@@ -119,15 +139,17 @@ private:
     Vector3d      u, target_pos;
     state_space_t state_space;
     bool          set_init_target;
-    bool          set_next_target;
-    geometry_msgs::msg::Point target_next;
 
-    mav_trajectory_generation::Trajectory traj_;
+    std::shared_ptr<scp::ScpPlanner> scp_planner_;
 
     std::shared_ptr<Geometric_Controller>              controller;
     std::shared_ptr<DynamicsProvider>                  dynamics;
     std::unique_ptr<tf2_ros::TransformBroadcaster>     tf_broadcaster_;
     rclcpp::Subscription<geometry_msgs::msg::Point>::SharedPtr desired_state_sub_;
+    rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr path_marker_pub_;
+    visualization_msgs::msg::Marker path_marker_;
+    int   path_tick_ = 0;
+    float base_r_ = 1.0f, base_g_ = 1.0f, base_b_ = 1.0f;
     rclcpp::TimerBase::SharedPtr                       timer_;
 
     params_t    params_;
@@ -188,70 +210,17 @@ private:
     }
 
     // -----------------------------------------------------------------------
-    // Trajectory optimisation
-    // -----------------------------------------------------------------------
-    mav_trajectory_generation::Trajectory get_opt_traj(const opt_t &ps, const Vector3d &pe)
-    {
-        namespace mtg = mav_trajectory_generation;
-        mtg::Vertex::Vector vertices;
-        mtg::Vertex v_s(3), v_e(3);
-        const int deriv = mtg::derivative_order::JERK;
-
-        v_s.addConstraint(mtg::derivative_order::POSITION,     ps.position);
-        v_s.addConstraint(mtg::derivative_order::VELOCITY,     ps.velocity);
-        v_s.addConstraint(mtg::derivative_order::ACCELERATION, ps.acceleration);
-        v_e.makeStartOrEnd(pe, deriv);
-
-        vertices.push_back(v_s);
-        vertices.push_back(v_e);
-
-        const double v_max = 1.0, a_max = 4.0;
-        std::vector<double> segment_times = mtg::estimateSegmentTimes(vertices, v_max, a_max);
-
-        mtg::PolynomialOptimization<8> opt(3);
-        opt.setupFromVertices(vertices, segment_times, deriv);
-        opt.solveLinear();
-
-        mtg::Trajectory trajectory;
-        opt.getTrajectory(&trajectory);
-        return trajectory;
-    }
-
-    // Receding horizon replanning: replan from current dynamic state to pending target.
-    void do_rhp()
-    {
-        Vector3d pt(target_next.x, target_next.y, target_next.z);
-        state_space_t ss = dynamics->get_state();
-        opt_t wp = {ss.position, ss.velocity, ss.acceleration, Vector3d(0, 0, 0)};
-        traj_          = get_opt_traj(wp, pt);
-        set_next_target = false;
-        tau             = 0;
-        RCLCPP_INFO(this->get_logger(), "Replanned trajectory, duration: %.2f s", traj_.getMaxTime());
-    }
-
-    // -----------------------------------------------------------------------
-    // Goal subscription
+    // Goal subscription -> hand the goal to the SCP planner (NED frame)
     // -----------------------------------------------------------------------
     void desired_pos_cb(const geometry_msgs::msg::Point::SharedPtr pt)
     {
         Vector3d p1(pt->x, pt->y, pt->z);
         if ((target_pos - p1).norm() < 0.2) return;
-
-        if (!set_init_target) {
-            set_init_target = true;
-            Vector3d zero(0, 0, 0);
-            opt_t ps = {target_pos, zero, zero, zero};
-            traj_      = get_opt_traj(ps, p1);
-            target_pos = p1;
-            RCLCPP_INFO(this->get_logger(), "Set initial trajectory to [%.2f %.2f %.2f]",
-                        p1[0], p1[1], p1[2]);
-        } else {
-            target_next    = *pt;
-            target_pos     = p1;
-            set_next_target = true;
-            RCLCPP_INFO(this->get_logger(), "Queued new target [%.2f %.2f %.2f]",
-                        p1[0], p1[1], p1[2]);
-        }
+        target_pos      = p1;
+        set_init_target = true;
+        state_space_t ss = dynamics->get_state();
+        scp_planner_->set_goal(p1, ss.position, ss.velocity);
+        RCLCPP_INFO(this->get_logger(), "New goal [%.2f %.2f %.2f]", p1[0], p1[1], p1[2]);
     }
 
     // -----------------------------------------------------------------------
@@ -299,8 +268,58 @@ private:
         dynamics->update(control, sim_time);
         set_state_space();
         send_transform();
+        publish_path();
         dynamics->reset_dynamics();
         sim_time += dt;
+    }
+
+    // Trajectory trail: append the current (map-frame) position to a LINE_STRIP
+    // marker, keep only the last N points, and publish. Mirrors the ROS 1
+    // Quadrotor::publish_path().
+    void publish_path()
+    {
+        constexpr size_t kMaxPoints = 20;
+        if (++path_tick_ % 5 != 0) return;     // sample ~20 Hz -> ~50 s of trail
+
+        const Vector3d pos = state_space.position;   // NWU / map frame
+        if (std::isnan(pos[0]) || std::isnan(pos[1]) || std::isnan(pos[2])) return;
+
+        geometry_msgs::msg::Point p;
+        p.x = pos[0]; p.y = pos[1]; p.z = pos[2];
+        path_marker_.points.push_back(p);
+        if (path_marker_.points.size() > kMaxPoints)
+            path_marker_.points.erase(path_marker_.points.begin());
+
+        // per-point alpha ramp: oldest point faint, newest solid. The tail then
+        // fades out smoothly so dropping the front point is barely visible.
+        const size_t n = path_marker_.points.size();
+        path_marker_.colors.resize(n);
+        for (size_t i = 0; i < n; ++i) {
+            auto &c = path_marker_.colors[i];
+            c.r = base_r_; c.g = base_g_; c.b = base_b_;
+            c.a = 0.05f + 0.95f * (static_cast<float>(i + 1) / static_cast<float>(n));
+        }
+
+        path_marker_.header.stamp = this->get_clock()->now();
+        path_marker_pub_->publish(path_marker_);
+    }
+
+    // HSV (h,s,v in [0,1]) -> RGB, for procedural per-robot trail colours.
+    static void hsv_to_rgb(float h, float s, float v, float &r, float &g, float &b)
+    {
+        const float i = std::floor(h * 6.0f);
+        const float f = h * 6.0f - i;
+        const float p = v * (1.0f - s);
+        const float q = v * (1.0f - f * s);
+        const float t = v * (1.0f - (1.0f - f) * s);
+        switch (static_cast<int>(i) % 6) {
+            case 0: r = v; g = t; b = p; break;
+            case 1: r = q; g = v; b = p; break;
+            case 2: r = p; g = v; b = t; break;
+            case 3: r = p; g = q; b = v; break;
+            case 4: r = t; g = p; b = v; break;
+            default: r = v; g = p; b = q; break;
+        }
     }
 
     void set_state_space()
@@ -319,13 +338,8 @@ private:
         Vector3d xd = simulator_utils::ned_nwu_rotation(init_vals.position);
 
         if (set_init_target) {
-            if (set_next_target) {
-                do_rhp();
-            }
-            xd = traj_.evaluate(tau, mav_trajectory_generation::derivative_order::POSITION);
-            // advance, clamping to the trajectory end so we hold exactly at the
-            // zero-velocity endpoint instead of freezing a fraction of dt short.
-            tau = std::min(tau + dt, traj_.getMaxTime());
+            // SCP planner advances playback and replans (with collision avoidance) internally
+            xd = scp_planner_->reference();
         }
 
         desired_state_t dss = {xd, b1d};
