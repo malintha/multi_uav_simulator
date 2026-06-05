@@ -1,20 +1,28 @@
-# Mavswarm2 (under development)
+# Mavswarm2 
 
-Mavswarm is a lightweight and fast Multi-Aerial Vehicle simulator built on Robot Operating System (ROS), entirely written in C++. Mavswarm2 is the ROS2-compatible version of Mavswarm. It supports simulating heterogenous quadrotor swarms of upto 10 robots on a single desktop with physics. 
+Mavswarm2 is the ROS2-compatible version of Mavswarm. It supports simulating heterogenous quadrotor swarms of more than 10 robots on a single desktop with physics. 
 
-It has 
-- quadrotor control (ROS1/ROS2) 
-- trajectory optimization and receding horizon planning (only working in ROS1. I welcome any PRs/Contributions). 
+New in Mavswarm2 is trajectory optimization with collision avoidance using sequential convex programming. All the functionality is self-contained, and does not depend on any other ros packages except for ``simulator_interfaces``.
+
+**Functionalities:** 
+- quadrotor control (same geometric controller as mavswarm) 
+- trajectory optimization 
+- receding horizon planning 
+- collision avoidance 
 
 The internal controller uses the Lee's geometric tracking controller [3] and it is tuned for two different quadrotor models out of the box. 
 
-**Compared to Mavswarm1, Mavswarm2 has a simpler installation, and the code is more self-contained. Everything is in the header files, so easier to manage and export as a library**.
+**Compared to Mavswarm1, Mavswarm2 has a simpler installation, and the code is more self-contained. Everything is in the header files, so easier to manage and export as a library.**.
 
 Consider citing our work [1][2] if you find this code helpful for your publications. 
 
-| ![Cover Image](https://github.com/malintha/multi_uav_simulator/blob/master/cover.gif?raw=true) |
+| ![Cover Image](https://github.com/malintha/multi_uav_simulator/blob/ros2/cover.png?raw=true) |
 |:--:| 
-| *A hetergenous swarm of 5 quadrotors stabilizing from an upside-down initialization* |
+| *A swarm of 10 drones stabilizing from an upside-down initialization* |
+
+| ![Cover Image](https://github.com/malintha/multi_uav_simulator/blob/ros2/cover2.png?raw=true) |
+|:--:| 
+| *10 drones forming letter "U"* |
 
 ## Installation
 
@@ -40,14 +48,10 @@ Install Eigen, Armadillo and GNU Science Library (GSL) before you continue.
     ros2 launch mavswarm2 quadrotor.launch
 
 
-**Publishing Goals**
+**Formation Control Goal Publishing**
+The example script ``publish_words.py`` publishes locations to the drones such that it can visualize a word, one letter-at-a-time using a formation of 10 drones. 
 
-- Under development, not working in right now
-
-**Adding a new drone to the environment**
-
-- under development, not working in right now
-
+    python publish_words.py HELLO
 
 
 [1] Our work based on this controller:

@@ -2,3 +2,5 @@ config/simulation.rviz
 .gitignore
 .vscode
 build
+install
+log

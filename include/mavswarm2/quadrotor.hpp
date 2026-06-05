@@ -278,7 +278,7 @@ private:
     // Quadrotor::publish_path().
     void publish_path()
     {
-        constexpr size_t kMaxPoints = 20;
+        constexpr size_t kMaxPoints = 200;
         if (++path_tick_ % 5 != 0) return;     // sample ~20 Hz -> ~50 s of trail
 
         const Vector3d pos = state_space.position;   // NWU / map frame

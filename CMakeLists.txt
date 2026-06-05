@@ -16,7 +16,6 @@ find_package(geometry_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
-find_package(mav_trajectory_generation_ros2 REQUIRED)
 find_package(glog REQUIRED)
 
 add_executable(mavswarm2 src/quadrotor.cpp)
@@ -28,13 +27,11 @@ ament_target_dependencies(mavswarm2
     tf2_ros
     visualization_msgs
     simulator_interfaces
-    mav_trajectory_generation_ros2
 )
 
 target_link_libraries(mavswarm2
     GSL::gsl
     GSL::gslcblas
-    ${mav_trajectory_generation_ros2_LIBRARIES}
     glog::glog
 )
 
@@ -49,7 +46,6 @@ install(
 
 include_directories(
     include/${PROJECT_NAME}
-    ${mav_trajectory_generation_ros2_INCLUDE_DIRS}
     ${EIGEN3_INCLUDE_DIRS}
 )
 
