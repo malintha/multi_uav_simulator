@@ -12,13 +12,11 @@ All the functionality is self-contained, and does not depend on any other ros pa
 - receding horizon planning 
 - collision avoidance 
 
+Consider citing our work [1][2] if you find this code helpful for your publications.
+
 The internal controller uses the Lee's geometric tracking controller [3] and it is tuned for two different quadrotor models out of the box. 
 
 **Compared to Mavswarm1, Mavswarm2 has a simpler installation, and the code is more self-contained. Everything is in the header files, so easier to manage and export as a library.**.
-
-Consider citing our work [1][2] if you find this code helpful for your publications. 
-
-Consider citing our work [1][2] if you find this code helpful for your publications.
 
 | Drone stabilization | Letter formation |
 |:-------------------:|:----------------:|
