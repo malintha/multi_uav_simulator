@@ -88,14 +88,18 @@ public:
 
         tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
         worldframe      = "map";
-        robot_link_name = "base_link";
+        // per-robot TF child frame so multiple drones don't all broadcast map->base_link
+        robot_link_name = "robot_" + std::to_string(robot_id) + "/base_link";
 
         // initialise hover target to the drone's starting position (NWU)
         target_pos = simulator_utils::ned_nwu_rotation(init_vals.position);
 
+        // per-robot desired_state topic, e.g. /mavswarm2/robot_3/desired_state
+        std::string desired_topic = "robot_" + std::to_string(robot_id) + "/desired_state";
         desired_state_sub_ = this->create_subscription<geometry_msgs::msg::Point>(
-            "desired_state", 10,
+            desired_topic, 10,
             std::bind(&Quadrotor::desired_pos_cb, this, std::placeholders::_1));
+        RCLCPP_INFO(this->get_logger(), "Subscribing to goal topic: %s", desired_topic.c_str());
 
         this->setState(State::Autonomous);
     }
@@ -290,8 +294,8 @@ private:
         control_out_t control = controller->get_control(s, d_state);
         Vector3d rpy      = simulator_utils::R2RPY(state_space.R);
 
-        RCLCPP_INFO(this->get_logger(), "%2f current vs desired %4f %4f %4f | %4f %4f %4f",
-                     sim_time, rpy[0], rpy[1], rpy[2], d_state.b1[0],d_state.b1[1], d_state.b1[2]);
+        // RCLCPP_INFO(this->get_logger(), "%2f current vs desired %4f %4f %4f | %4f %4f %4f",
+        //              sim_time, rpy[0], rpy[1], rpy[2], d_state.b1[0],d_state.b1[1], d_state.b1[2]);
         dynamics->update(control, sim_time);
         set_state_space();
         send_transform();

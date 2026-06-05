@@ -1,41 +1,130 @@
 <launch>
 
-<!-- <param file="/home/parallels/mavswarm2/src/mavswarm2/config/crazyflie_params.yaml"/> -->
-<arg name="controller_frequency" default="100"/>
-<arg name="robot_id" default="0"/>
-<arg name="log_level" default="INFO"/>
-    
-<node
-    pkg="mavswarm2"
-    exec="mavswarm2"
-    output="screen"
-    name="robot_0"
-    namespace="mavswarm2"
-    args="$(var robot_id) $(var controller_frequency) --ros-args --log-level $(var log_level)">
-    
+  <arg name="controller_frequency" default="100"/>
+  <arg name="log_level" default="INFO"/>
+
+  <!-- =====================  robot_0  ===================== -->
+  <node pkg="mavswarm2" exec="mavswarm2" name="robot_0" namespace="mavswarm2" output="screen"
+        args="0 $(var controller_frequency) --ros-args --log-level $(var log_level)">
     <param from="$(find-pkg-share mavswarm2)/config/crazyflie_params.yaml"/>
     <param from="$(find-pkg-share mavswarm2)/config/initial_conditions_2.yaml"/>
+  </node>
+  <node pkg="robot_state_publisher" exec="robot_state_publisher" name="robot_state_publisher"
+        namespace="mavswarm2/robot_0" output="screen">
+    <param name="robot_description" value="$(command 'xacro $(find-pkg-share mavswarm2)/cf_description/crazyflie.urdf.xacro robot_id:=0')"/>
+    <param name="frame_prefix" value="robot_0/"/>
+  </node>
 
-</node>
+  <!-- =====================  robot_1  ===================== -->
+  <node pkg="mavswarm2" exec="mavswarm2" name="robot_1" namespace="mavswarm2" output="screen"
+        args="1 $(var controller_frequency) --ros-args --log-level $(var log_level)">
+    <param from="$(find-pkg-share mavswarm2)/config/crazyflie_params.yaml"/>
+    <param from="$(find-pkg-share mavswarm2)/config/initial_conditions_2.yaml"/>
+  </node>
+  <node pkg="robot_state_publisher" exec="robot_state_publisher" name="robot_state_publisher"
+        namespace="mavswarm2/robot_1" output="screen">
+    <param name="robot_description" value="$(command 'xacro $(find-pkg-share mavswarm2)/cf_description/crazyflie.urdf.xacro robot_id:=1')"/>
+    <param name="frame_prefix" value="robot_1/"/>
+  </node>
 
-<node
-    pkg="robot_state_publisher"
-    exec="robot_state_publisher"
-    output="screen"
-    name="robot_state_publisher"
-    namespace="mavswarm2">
-    <param name="robot_description"
-           value="$(command 'xacro $(find-pkg-share mavswarm2)/cf_description/crazyflie.urdf.xacro robot_id:=$(var robot_id)')"/>
-</node>
+  <!-- =====================  robot_2  ===================== -->
+  <node pkg="mavswarm2" exec="mavswarm2" name="robot_2" namespace="mavswarm2" output="screen"
+        args="2 $(var controller_frequency) --ros-args --log-level $(var log_level)">
+    <param from="$(find-pkg-share mavswarm2)/config/crazyflie_params.yaml"/>
+    <param from="$(find-pkg-share mavswarm2)/config/initial_conditions_2.yaml"/>
+  </node>
+  <node pkg="robot_state_publisher" exec="robot_state_publisher" name="robot_state_publisher"
+        namespace="mavswarm2/robot_2" output="screen">
+    <param name="robot_description" value="$(command 'xacro $(find-pkg-share mavswarm2)/cf_description/crazyflie.urdf.xacro robot_id:=2')"/>
+    <param name="frame_prefix" value="robot_2/"/>
+  </node>
 
-<node
-    pkg="rviz2"
-    exec="rviz2"
-    output="screen"
-    name="rviz2"
-    namespace=""
-    args="-d $(find-pkg-share mavswarm2)/config/simulation.rviz">
+  <!-- =====================  robot_3  ===================== -->
+  <node pkg="mavswarm2" exec="mavswarm2" name="robot_3" namespace="mavswarm2" output="screen"
+        args="3 $(var controller_frequency) --ros-args --log-level $(var log_level)">
+    <param from="$(find-pkg-share mavswarm2)/config/crazyflie_params.yaml"/>
+    <param from="$(find-pkg-share mavswarm2)/config/initial_conditions_2.yaml"/>
+  </node>
+  <node pkg="robot_state_publisher" exec="robot_state_publisher" name="robot_state_publisher"
+        namespace="mavswarm2/robot_3" output="screen">
+    <param name="robot_description" value="$(command 'xacro $(find-pkg-share mavswarm2)/cf_description/crazyflie.urdf.xacro robot_id:=3')"/>
+    <param name="frame_prefix" value="robot_3/"/>
+  </node>
 
-</node>
+  <!-- =====================  robot_4  ===================== -->
+  <node pkg="mavswarm2" exec="mavswarm2" name="robot_4" namespace="mavswarm2" output="screen"
+        args="4 $(var controller_frequency) --ros-args --log-level $(var log_level)">
+    <param from="$(find-pkg-share mavswarm2)/config/crazyflie_params.yaml"/>
+    <param from="$(find-pkg-share mavswarm2)/config/initial_conditions_2.yaml"/>
+  </node>
+  <node pkg="robot_state_publisher" exec="robot_state_publisher" name="robot_state_publisher"
+        namespace="mavswarm2/robot_4" output="screen">
+    <param name="robot_description" value="$(command 'xacro $(find-pkg-share mavswarm2)/cf_description/crazyflie.urdf.xacro robot_id:=4')"/>
+    <param name="frame_prefix" value="robot_4/"/>
+  </node>
+
+  <!-- =====================  robot_5  ===================== -->
+  <node pkg="mavswarm2" exec="mavswarm2" name="robot_5" namespace="mavswarm2" output="screen"
+        args="5 $(var controller_frequency) --ros-args --log-level $(var log_level)">
+    <param from="$(find-pkg-share mavswarm2)/config/crazyflie_params.yaml"/>
+    <param from="$(find-pkg-share mavswarm2)/config/initial_conditions_2.yaml"/>
+  </node>
+  <node pkg="robot_state_publisher" exec="robot_state_publisher" name="robot_state_publisher"
+        namespace="mavswarm2/robot_5" output="screen">
+    <param name="robot_description" value="$(command 'xacro $(find-pkg-share mavswarm2)/cf_description/crazyflie.urdf.xacro robot_id:=5')"/>
+    <param name="frame_prefix" value="robot_5/"/>
+  </node>
+
+  <!-- =====================  robot_6  ===================== -->
+  <node pkg="mavswarm2" exec="mavswarm2" name="robot_6" namespace="mavswarm2" output="screen"
+        args="6 $(var controller_frequency) --ros-args --log-level $(var log_level)">
+    <param from="$(find-pkg-share mavswarm2)/config/crazyflie_params.yaml"/>
+    <param from="$(find-pkg-share mavswarm2)/config/initial_conditions_2.yaml"/>
+  </node>
+  <node pkg="robot_state_publisher" exec="robot_state_publisher" name="robot_state_publisher"
+        namespace="mavswarm2/robot_6" output="screen">
+    <param name="robot_description" value="$(command 'xacro $(find-pkg-share mavswarm2)/cf_description/crazyflie.urdf.xacro robot_id:=6')"/>
+    <param name="frame_prefix" value="robot_6/"/>
+  </node>
+
+  <!-- =====================  robot_7  ===================== -->
+  <node pkg="mavswarm2" exec="mavswarm2" name="robot_7" namespace="mavswarm2" output="screen"
+        args="7 $(var controller_frequency) --ros-args --log-level $(var log_level)">
+    <param from="$(find-pkg-share mavswarm2)/config/crazyflie_params.yaml"/>
+    <param from="$(find-pkg-share mavswarm2)/config/initial_conditions_2.yaml"/>
+  </node>
+  <node pkg="robot_state_publisher" exec="robot_state_publisher" name="robot_state_publisher"
+        namespace="mavswarm2/robot_7" output="screen">
+    <param name="robot_description" value="$(command 'xacro $(find-pkg-share mavswarm2)/cf_description/crazyflie.urdf.xacro robot_id:=7')"/>
+    <param name="frame_prefix" value="robot_7/"/>
+  </node>
+
+  <!-- =====================  robot_8  ===================== -->
+  <node pkg="mavswarm2" exec="mavswarm2" name="robot_8" namespace="mavswarm2" output="screen"
+        args="8 $(var controller_frequency) --ros-args --log-level $(var log_level)">
+    <param from="$(find-pkg-share mavswarm2)/config/crazyflie_params.yaml"/>
+    <param from="$(find-pkg-share mavswarm2)/config/initial_conditions_2.yaml"/>
+  </node>
+  <node pkg="robot_state_publisher" exec="robot_state_publisher" name="robot_state_publisher"
+        namespace="mavswarm2/robot_8" output="screen">
+    <param name="robot_description" value="$(command 'xacro $(find-pkg-share mavswarm2)/cf_description/crazyflie.urdf.xacro robot_id:=8')"/>
+    <param name="frame_prefix" value="robot_8/"/>
+  </node>
+
+  <!-- =====================  robot_9  ===================== -->
+  <node pkg="mavswarm2" exec="mavswarm2" name="robot_9" namespace="mavswarm2" output="screen"
+        args="9 $(var controller_frequency) --ros-args --log-level $(var log_level)">
+    <param from="$(find-pkg-share mavswarm2)/config/crazyflie_params.yaml"/>
+    <param from="$(find-pkg-share mavswarm2)/config/initial_conditions_2.yaml"/>
+  </node>
+  <node pkg="robot_state_publisher" exec="robot_state_publisher" name="robot_state_publisher"
+        namespace="mavswarm2/robot_9" output="screen">
+    <param name="robot_description" value="$(command 'xacro $(find-pkg-share mavswarm2)/cf_description/crazyflie.urdf.xacro robot_id:=9')"/>
+    <param name="frame_prefix" value="robot_9/"/>
+  </node>
+
+  <!-- =====================  visualisation  ===================== -->
+  <node pkg="rviz2" exec="rviz2" name="rviz2" namespace="" output="screen"
+        args="-d $(find-pkg-share mavswarm2)/config/simulation.rviz"/>
 
 </launch>
