@@ -1,9 +1,12 @@
 # define the initial positions of each robot in NWU frame
 # change the initial rotation matrix to [1, 0, 0, 0, 1, 0, 0, 0, 1] for initialing the 
 # drones right side up.
-robot_0:
+# "/**/robot_0" matches the node whether it is namespaced (e.g. /mavswarm2/robot_0
+# when started from the launch file) or run bare as /robot_0. A plain "robot_0:" key
+# does NOT match a namespaced node, which silently drops these params.
+/**/robot_0:
   ros__parameters:
-    position: [2.0, 2.0, -2.0]
+    position: [2.0, 2.0, 2.0]
     velocity: [0.0, 0.0, 0.0]
     rotation: [1.0, 0.0, 0.0, 0.0, -0.9995, -0.0314, 0.0, 0.0314, -0.9995]
     omega: [0.0, 0.0, 0.0]

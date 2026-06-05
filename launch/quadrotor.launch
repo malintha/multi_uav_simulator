@@ -19,6 +19,16 @@
 </node>
 
 <node
+    pkg="robot_state_publisher"
+    exec="robot_state_publisher"
+    output="screen"
+    name="robot_state_publisher"
+    namespace="mavswarm2">
+    <param name="robot_description"
+           value="$(command 'xacro $(find-pkg-share mavswarm2)/cf_description/crazyflie.urdf.xacro robot_id:=$(var robot_id)')"/>
+</node>
+
+<node
     pkg="rviz2"
     exec="rviz2"
     output="screen"

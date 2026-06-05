@@ -1,6 +1,6 @@
 /**:
   ros__parameters:
-    controller_gains: [1.0, 0.5, 0.015, 0.00075]
+    controller_gains: [1.0, 0.5, 0.0015, 0.00075]
         # kx: 1
         # kv: 0.5
         # kr: 0.0015

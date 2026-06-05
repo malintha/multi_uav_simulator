@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="crazyflie">
+  <xacro:arg name="robot_id" default="0"/>
+
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="4.71 0 0" />
+      <geometry>
+        <mesh filename="package://mavswarm2/cf_description/crazyflie2.dae"/>
+      </geometry>
+    </visual>
+  </link>
+
+</robot>

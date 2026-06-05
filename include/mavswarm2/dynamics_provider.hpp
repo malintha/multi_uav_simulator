@@ -132,7 +132,6 @@ void update(control_out_t control, double sim_time_)
     {
         state_space.omega[i] = y[k];
     }
-    // ROS_DEBUG_STREAM(t_stop<<" R: \n" << state_space.R << " \n v: \n" << state_space.velocity);
 
     sim_time = t_stop;
 }
