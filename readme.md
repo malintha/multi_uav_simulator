@@ -1,6 +1,6 @@
-# Mavswarm2 
+# Mavswarm2 (ROS2 Support for Mavswarm)
 
-Mavswarm2 is the ROS2-compatible version of Mavswarm. It supports simulating heterogenous quadrotor swarms of more than 10 robots on a single desktop with physics. 
+Mavswarm2 is the ROS2-compatible version of Mavswarm. It supports simulating heterogenous quadrotor swarms of more than 10 robots on a single desktop with physics. Tested for ROS2 Jazzy.
 
 **New in Mavswarm2 is fully-distributed trajectory optimization with collision avoidance using sequential convex programming!**
  
